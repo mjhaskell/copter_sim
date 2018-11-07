@@ -43,6 +43,7 @@ private:
   void setupView(osg::Camera* camera);
   void setupViewer();
   void setupCameraAndView();
+  osg::ref_ptr<osg::Node> create_ironman(double boundingRadius);
 };
 
 #endif // OSGWIDGET_HPP

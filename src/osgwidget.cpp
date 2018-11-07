@@ -14,6 +14,7 @@
 #include <QKeyEvent>
 #include <QPainter>
 #include <QWheelEvent>
+#include <osgDB/ReadFile>
 
 OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     QOpenGLWidget{parent,flags},
@@ -24,6 +25,9 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     m_root{new osg::Group}
 {
     this->setupCameraAndView();
+//    this->create_ironman(5);
+    osg::ref_ptr<osg::Node> ironman_pat{this->create_ironman(0.3)};
+    m_root->addChild(ironman_pat);
     this->setFocusPolicy(Qt::StrongFocus);
     this->setMouseTracking(true);
     this->update();
@@ -268,4 +272,54 @@ void OSGWidget::setupCameraAndView()
     this->setupCamera(camera);
     this->setupView(camera);
     this->setupViewer();
+}
+
+//The model has it's own scale.  This function creates a node to scale the model to fit inside the bounding sphere defined by the radius.
+osg::ref_ptr<osg::Node> create_scaled_model(osg::ref_ptr<osg::Node> model, double boundingRadius)
+{
+    osg::BoundingSphere bb = model->getBound();
+
+     osg::ref_ptr<osg::PositionAttitudeTransform> scaleTrans = new osg::PositionAttitudeTransform;
+     double boundingBoxRadius = bb.radius();
+     double radiusRatio{boundingRadius/boundingBoxRadius};
+     scaleTrans->setScale(osg::Vec3d(radiusRatio,radiusRatio,radiusRatio));
+     scaleTrans->addChild(model);
+
+     return scaleTrans.release();
+}
+
+//The model is at it's own position in 3d space.  This funciton creates a node to position the model at the origin.
+osg::ref_ptr<osg::Node> create_translated_model(osg::ref_ptr<osg::Node> model)
+{
+    osg::BoundingSphere bb = model->getBound();
+    osg ::ref_ptr<osg::PositionAttitudeTransform> positionTrans = new osg::PositionAttitudeTransform;
+    osg::Vec3d pos=bb.center();
+    pos=osg::Vec3d(pos.x()*-1,pos.y()*-1,pos.z()*-1);
+    positionTrans->setPosition(pos);
+    positionTrans->addChild(model);
+    return positionTrans.release();
+}
+
+
+osg::ref_ptr<osg::Node> create_model()
+{
+//    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("IronMan.3DS");
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("simple_drone.obj");
+
+    if(model.valid())
+    {
+        osg::StateSet* stateSet = model->getOrCreateStateSet();
+        stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON );
+        stateSet->setMode(GL_RESCALE_NORMAL ,osg::StateAttribute::ON);
+    }
+    return model.release();
+}
+
+osg::ref_ptr<osg::Node> OSGWidget::create_ironman(double boundingRadius)
+{
+    osg::ref_ptr<osg::Node> model = create_model();
+    osg::ref_ptr<osg::Node> scaledModel = create_scaled_model(model,boundingRadius);
+    osg::ref_ptr<osg::Node> translatedModel = create_translated_model(scaledModel);
+
+    return translatedModel.release();
 }
