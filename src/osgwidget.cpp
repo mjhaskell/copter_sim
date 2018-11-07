@@ -15,6 +15,7 @@
 #include <QPainter>
 #include <QWheelEvent>
 #include <osgDB/ReadFile>
+#include <osgUtil/SmoothingVisitor>
 
 OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     QOpenGLWidget{parent,flags},
@@ -25,9 +26,18 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     m_root{new osg::Group}
 {
     this->setupCameraAndView();
-//    this->create_ironman(5);
-    osg::ref_ptr<osg::Node> ironman_pat{this->create_ironman(0.3)};
-    m_root->addChild(ironman_pat);
+
+    osg::ref_ptr<osg::Node> floor{this->createFloor()};
+    m_root->addChild(floor);
+
+    osg::Vec3d scale_factor{1,1,1};
+    osg::ref_ptr<osg::Node> origin_pat{this->createOrigin(scale_factor)};
+    m_root->addChild(origin_pat);
+
+    double drone_radius{0.3};
+    osg::ref_ptr<osg::Node> drone_pat{this->createDrone(drone_radius)};
+    m_root->addChild(drone_pat);
+
     this->setFocusPolicy(Qt::StrongFocus);
     this->setMouseTracking(true);
     this->update();
@@ -233,7 +243,7 @@ void OSGWidget::setupCamera(osg::Camera* camera)
     unsigned int viewport_y{0};
     camera->setViewport(viewport_x, viewport_y, this->width() * pixel_ratio, this->height() * pixel_ratio);
 
-    osg::Vec4 color_rgba{0.3f, 0.3f, 0.3f, 1.0f};
+    osg::Vec4 color_rgba{0.0f, 0.6f, 1.0f, 1.0f};
     camera->setClearColor(color_rgba);
 
     double angle_of_view{45.0};
@@ -247,9 +257,9 @@ void OSGWidget::setupView(osg::Camera* camera)
 {
     m_manipulator->setAllowThrow(false);
 
-    osg::Vec3d camera_location{0.0,-20.0,3.0};
+    osg::Vec3d camera_location{0.0,-5.0,-1.0};
     osg::Vec3d camera_center_of_focus{0,0,0};
-    osg::Vec3d worlds_up_direction{0,0,1};
+    osg::Vec3d worlds_up_direction{0,0,-1};
     m_manipulator->setHomePosition(camera_location,camera_center_of_focus,worlds_up_direction);
 
     m_view->setCamera(camera);
@@ -257,6 +267,10 @@ void OSGWidget::setupView(osg::Camera* camera)
     m_view->addEventHandler(new osgViewer::StatsHandler);
     m_view->setCameraManipulator(m_manipulator);
     m_view->home();
+    m_view->setLightingMode(osg::View::SKY_LIGHT);
+    osg::Light *light{m_view->getLight()};
+    osg::Vec4 light_pos{0,0,-1,0};
+    light->setPosition(light_pos);
 }
 
 void OSGWidget::setupViewer()
@@ -274,52 +288,142 @@ void OSGWidget::setupCameraAndView()
     this->setupViewer();
 }
 
-//The model has it's own scale.  This function creates a node to scale the model to fit inside the bounding sphere defined by the radius.
-osg::ref_ptr<osg::Node> create_scaled_model(osg::ref_ptr<osg::Node> model, double boundingRadius)
+osg::ref_ptr<osg::Node> OSGWidget::createFloor()
 {
-    osg::BoundingSphere bb = model->getBound();
+    osg::ref_ptr<osg::Vec3Array> vertices{ new osg::Vec3Array };
+      osg::ref_ptr<osg::Vec2Array> tex_coords{ new osg::Vec2Array };
+      osg::ref_ptr<osg::Vec3Array> normals{ new osg::Vec3Array };
 
-     osg::ref_ptr<osg::PositionAttitudeTransform> scaleTrans = new osg::PositionAttitudeTransform;
-     double boundingBoxRadius = bb.radius();
-     double radiusRatio{boundingRadius/boundingBoxRadius};
-     scaleTrans->setScale(osg::Vec3d(radiusRatio,radiusRatio,radiusRatio));
-     scaleTrans->addChild(model);
+      vertices->push_back(osg::Vec3(-100.0f, -100.0f, -0.01f));
+      vertices->push_back(osg::Vec3(-100.0f, 100.0f, -0.01f));
+      vertices->push_back(osg::Vec3(100.0f, 100.0f, -0.01f));
+      vertices->push_back(osg::Vec3(100.0f, -100.0f, -0.01f));
 
-     return scaleTrans.release();
+      normals->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+      normals->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+      normals->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+      normals->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+
+      tex_coords->push_back(osg::Vec2(0.0f, 0.0f));
+      tex_coords->push_back(osg::Vec2(0.0f, 100.0f));
+      tex_coords->push_back(osg::Vec2(100.0f, 100.0f));
+      tex_coords->push_back(osg::Vec2(100.0f, 0.0f));
+
+      osg::Geometry *geom{new osg::Geometry};
+      geom->setVertexArray(vertices);
+      geom->setNormalArray(normals, osg::Array::Binding::BIND_PER_VERTEX);
+      geom->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, 4));
+      geom->setTexCoordArray(0, tex_coords.get());
+      osgUtil::SmoothingVisitor::smooth(*geom);
+
+      geom->setTexCoordArray(0, tex_coords.get(), osg::Array::Binding::BIND_PER_VERTEX);
+
+      osg::ref_ptr<osg::Texture2D> texture{new osg::Texture2D};
+      osg::ref_ptr<osg::Image> image{osgDB::readImageFile("../obj/tile.jpg")};
+      texture->setImage(image);
+      texture->setUnRefImageDataAfterApply(true);
+      texture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+      texture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+
+      osg::StateSet *geom_state_set = geom->getOrCreateStateSet();
+      geom_state_set->setTextureAttributeAndModes(0, texture.get(), osg::StateAttribute::ON);
+
+      return geom;
 }
 
-//The model is at it's own position in 3d space.  This funciton creates a node to position the model at the origin.
-osg::ref_ptr<osg::Node> create_translated_model(osg::ref_ptr<osg::Node> model)
+osg::ref_ptr<osg::Node> OSGWidget::createOrigin(osg::Vec3d &scale_factor)
 {
-    osg::BoundingSphere bb = model->getBound();
-    osg ::ref_ptr<osg::PositionAttitudeTransform> positionTrans = new osg::PositionAttitudeTransform;
-    osg::Vec3d pos=bb.center();
-    pos=osg::Vec3d(pos.x()*-1,pos.y()*-1,pos.z()*-1);
-    positionTrans->setPosition(pos);
-    positionTrans->addChild(model);
-    return positionTrans.release();
+    osg::Vec3Array* v{new osg::Vec3Array};
+        v->resize(4);
+        (*v)[0].set(0, 0, 0);
+        (*v)[1].set(1, 0, 0);
+        (*v)[2].set(0, 1, 0);
+        (*v)[3].set(0, 0, 1);
+
+        osg::Geometry* geom{new osg::Geometry};
+        geom->setUseDisplayList(false);
+        geom->setVertexArray(v);
+
+        osg::Vec4 color{0,0,1,1};
+        osg::Vec4Array* c{new osg::Vec4Array};
+        c->push_back(color);
+        geom->setColorArray(c, osg::Array::BIND_OVERALL);
+
+        GLushort idxLines[6] = {0, 1, 0, 2, 0, 3};
+
+        geom->addPrimitiveSet(new osg::DrawElementsUShort{osg::PrimitiveSet::LINES, 6, idxLines});
+
+        osg::Geode* geode{new osg::Geode};
+        geode->addDrawable(geom);
+
+        geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::PROTECTED);
+        geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+        osg::PositionAttitudeTransform* transform{new osg::PositionAttitudeTransform};
+        transform->setScale(scale_factor);
+
+        transform->addChild(geode);
+        return transform;
 }
 
-
-osg::ref_ptr<osg::Node> create_model()
+osg::ref_ptr<osg::Node> scaleModel(const osg::ref_ptr<osg::Node> &model, double bounding_radius)
 {
-//    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("IronMan.3DS");
-    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("simple_drone.obj");
+    osg::BoundingSphere bb{model->getBound()};
+
+    osg::ref_ptr<osg::PositionAttitudeTransform> scale_trans{new osg::PositionAttitudeTransform};
+    double bounding_box_radius{bb.radius()};
+    double radius_ratio{bounding_radius/bounding_box_radius};
+    scale_trans->setScale(osg::Vec3d{radius_ratio,radius_ratio,radius_ratio});
+    scale_trans->addChild(model);
+
+    return scale_trans.release();
+}
+
+void rotateModel(osg::ref_ptr<osg::PositionAttitudeTransform> &pat)
+{
+    double angle{osg::DegreesToRadians(90.0)};
+    osg::Vec3d axis1{1,0,0};
+    osg::Vec3d axis2{0,0,1};
+    osg::Quat q1{angle,axis1};
+    osg::Quat q2{angle,axis2};
+    pat->setAttitude(q1*q2);
+}
+
+osg::ref_ptr<osg::PositionAttitudeTransform> translateModel(const osg::ref_ptr<osg::Node> &model)
+{
+    osg::BoundingSphere bb{model->getBound()};
+    osg::ref_ptr<osg::PositionAttitudeTransform> pat{new osg::PositionAttitudeTransform};
+    osg::Vec3d pos{bb.center()};
+    pos = osg::Vec3d{-pos.x(),-pos.y(),-pos.z()};
+    pat->setPosition(pos);
+    return pat.release();
+}
+
+osg::ref_ptr<osg::Node> transformModel(const osg::ref_ptr<osg::Node> &model)
+{
+    osg::ref_ptr<osg::PositionAttitudeTransform> pat{translateModel(model)};
+    rotateModel(pat);
+    pat->addChild(model);
+    return pat.release();
+}
+
+osg::ref_ptr<osg::Node> createDroneModel()
+{
+    osg::ref_ptr<osg::Node> model{osgDB::readNodeFile("../obj/simple_drone.obj")};
 
     if(model.valid())
     {
-        osg::StateSet* stateSet = model->getOrCreateStateSet();
-        stateSet->setMode( GL_DEPTH_TEST, osg::StateAttribute::ON );
-        stateSet->setMode(GL_RESCALE_NORMAL ,osg::StateAttribute::ON);
+        osg::StateSet* state_set{model->getOrCreateStateSet()};
+        state_set->setMode(GL_DEPTH_TEST,osg::StateAttribute::ON);
+        state_set->setMode(GL_RESCALE_NORMAL,osg::StateAttribute::ON);
     }
     return model.release();
 }
 
-osg::ref_ptr<osg::Node> OSGWidget::create_ironman(double boundingRadius)
+osg::ref_ptr<osg::Node> OSGWidget::createDrone(double bounding_radius)
 {
-    osg::ref_ptr<osg::Node> model = create_model();
-    osg::ref_ptr<osg::Node> scaledModel = create_scaled_model(model,boundingRadius);
-    osg::ref_ptr<osg::Node> translatedModel = create_translated_model(scaledModel);
+    osg::ref_ptr<osg::Node> model{createDroneModel()};
+    osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
+    osg::ref_ptr<osg::Node> transformed_model{transformModel(scaled_model)};
 
-    return translatedModel.release();
+    return transformed_model.release();
 }

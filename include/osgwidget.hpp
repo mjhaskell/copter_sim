@@ -38,12 +38,15 @@ private:
   osg::ref_ptr<osgViewer::CompositeViewer> m_viewer;
   osg::ref_ptr<osgViewer::View> m_view;
   osg::ref_ptr<osgGA::TrackballManipulator> m_manipulator;
+//  osg::Quat m_q0;
   osg::ref_ptr<osg::Group> m_root;
   void setupCamera(osg::Camera* camera);
   void setupView(osg::Camera* camera);
   void setupViewer();
   void setupCameraAndView();
-  osg::ref_ptr<osg::Node> create_ironman(double boundingRadius);
+  osg::ref_ptr<osg::Node> createFloor();
+  osg::ref_ptr<osg::Node> createOrigin(osg::Vec3d &scale_factor);
+  osg::ref_ptr<osg::Node> createDrone(double bounding_radius);
 };
 
 #endif // OSGWIDGET_HPP
