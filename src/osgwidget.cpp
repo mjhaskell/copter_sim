@@ -331,38 +331,44 @@ osg::ref_ptr<osg::Node> OSGWidget::createFloor()
       return geom;
 }
 
-osg::ref_ptr<osg::Node> OSGWidget::createOrigin(osg::Vec3d &scale_factor)
+osg::Geometry* getOriginAxis(int x,int y,int z)
 {
     osg::Vec3Array* v{new osg::Vec3Array};
-        v->resize(4);
-        (*v)[0].set(0, 0, 0);
-        (*v)[1].set(1, 0, 0);
-        (*v)[2].set(0, 1, 0);
-        (*v)[3].set(0, 0, 1);
+    v->resize(2);
+    (*v)[0].set(0, 0, 0);
+    (*v)[1].set(x, y, z);
 
-        osg::Geometry* geom{new osg::Geometry};
-        geom->setUseDisplayList(false);
-        geom->setVertexArray(v);
+    osg::Geometry* geom{new osg::Geometry};
+    geom->setUseDisplayList(false);
+    geom->setVertexArray(v);
+    osg::Vec4 color{float(z),float(y),float(x),1.f};
+    osg::Vec4Array* c{new osg::Vec4Array};
+    c->push_back(color);
+    geom->setColorArray(c, osg::Array::BIND_OVERALL);
 
-        osg::Vec4 color{0,0,1,1};
-        osg::Vec4Array* c{new osg::Vec4Array};
-        c->push_back(color);
-        geom->setColorArray(c, osg::Array::BIND_OVERALL);
+    GLushort idx_lines[2] = {0, 1};
+    geom->addPrimitiveSet(new osg::DrawElementsUShort{osg::PrimitiveSet::LINES, 2, idx_lines});
+    return geom;
+}
 
-        GLushort idxLines[6] = {0, 1, 0, 2, 0, 3};
+osg::ref_ptr<osg::Node> OSGWidget::createOrigin(osg::Vec3d &scale_factor)
+{
+    osg::Geometry* x_axis{getOriginAxis(1,0,0)};
+    osg::Geometry* y_axis{getOriginAxis(0,1,0)};
+    osg::Geometry* z_axis{getOriginAxis(0,0,1)};
 
-        geom->addPrimitiveSet(new osg::DrawElementsUShort{osg::PrimitiveSet::LINES, 6, idxLines});
+    osg::Geode* geode{new osg::Geode};
+    geode->addDrawable(x_axis);
+    geode->addDrawable(y_axis);
+    geode->addDrawable(z_axis);
 
-        osg::Geode* geode{new osg::Geode};
-        geode->addDrawable(geom);
+    geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::PROTECTED);
+    geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+    osg::PositionAttitudeTransform* transform{new osg::PositionAttitudeTransform};
+    transform->setScale(scale_factor);
 
-        geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::PROTECTED);
-        geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
-        osg::PositionAttitudeTransform* transform{new osg::PositionAttitudeTransform};
-        transform->setScale(scale_factor);
-
-        transform->addChild(geode);
-        return transform;
+    transform->addChild(geode);
+    return transform;
 }
 
 osg::ref_ptr<osg::Node> scaleModel(const osg::ref_ptr<osg::Node> &model, double bounding_radius)
