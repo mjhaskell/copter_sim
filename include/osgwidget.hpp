@@ -46,7 +46,7 @@ private:
   void setupCameraAndView();
   osg::ref_ptr<osg::Node> createFloor();
   osg::ref_ptr<osg::Node> createOrigin(osg::Vec3d &scale_factor);
-  osg::ref_ptr<osg::Node> createDrone(double bounding_radius);
+  osg::ref_ptr<osg::PositionAttitudeTransform> createDrone(double bounding_radius);
 };
 
 #endif // OSGWIDGET_HPP

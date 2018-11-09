@@ -35,7 +35,7 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     m_root->addChild(origin_pat);
 
     double drone_radius{0.3};
-    osg::ref_ptr<osg::Node> drone_pat{this->createDrone(drone_radius)};
+    osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
     m_root->addChild(drone_pat);
 
     this->setFocusPolicy(Qt::StrongFocus);
@@ -353,18 +353,18 @@ osg::Geometry* getOriginAxis(int x,int y,int z)
 
 osg::ref_ptr<osg::Node> OSGWidget::createOrigin(osg::Vec3d &scale_factor)
 {
-    osg::Geometry* x_axis{getOriginAxis(1,0,0)};
-    osg::Geometry* y_axis{getOriginAxis(0,1,0)};
-    osg::Geometry* z_axis{getOriginAxis(0,0,1)};
+    osg::ref_ptr<osg::Geometry> x_axis{getOriginAxis(1,0,0)};
+    osg::ref_ptr<osg::Geometry> y_axis{getOriginAxis(0,1,0)};
+    osg::ref_ptr<osg::Geometry> z_axis{getOriginAxis(0,0,1)};
 
-    osg::Geode* geode{new osg::Geode};
+    osg::ref_ptr<osg::Geode> geode{new osg::Geode};
     geode->addDrawable(x_axis);
     geode->addDrawable(y_axis);
     geode->addDrawable(z_axis);
 
     geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::PROTECTED);
     geode->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
-    osg::PositionAttitudeTransform* transform{new osg::PositionAttitudeTransform};
+    osg::ref_ptr<osg::PositionAttitudeTransform> transform{new osg::PositionAttitudeTransform};
     transform->setScale(scale_factor);
 
     transform->addChild(geode);
@@ -384,30 +384,27 @@ osg::ref_ptr<osg::Node> scaleModel(const osg::ref_ptr<osg::Node> &model, double 
     return scale_trans.release();
 }
 
-void rotateModel(osg::ref_ptr<osg::PositionAttitudeTransform> &pat)
+osg::ref_ptr<osg::Node> rotateModel(const osg::ref_ptr<osg::Node> &model)
 {
     double angle{osg::DegreesToRadians(90.0)};
     osg::Vec3d axis1{1,0,0};
     osg::Vec3d axis2{0,0,1};
     osg::Quat q1{angle,axis1};
     osg::Quat q2{angle,axis2};
+    osg::ref_ptr<osg::PositionAttitudeTransform> pat{new osg::PositionAttitudeTransform};
     pat->setAttitude(q1*q2);
+    pat->addChild(model);
+    return pat.release();
 }
 
-osg::ref_ptr<osg::PositionAttitudeTransform> translateModel(const osg::ref_ptr<osg::Node> &model)
+osg::ref_ptr<osg::Node> translateModel(const osg::ref_ptr<osg::Node> &model)
 {
     osg::BoundingSphere bb{model->getBound()};
     osg::ref_ptr<osg::PositionAttitudeTransform> pat{new osg::PositionAttitudeTransform};
     osg::Vec3d pos{bb.center()};
-    pos = osg::Vec3d{-pos.x(),-pos.y(),-pos.z()};
+    double cog_offset{-0.065};
+    pos = osg::Vec3d{-pos.x(),-pos.y()+cog_offset,-pos.z()};
     pat->setPosition(pos);
-    return pat.release();
-}
-
-osg::ref_ptr<osg::Node> transformModel(const osg::ref_ptr<osg::Node> &model)
-{
-    osg::ref_ptr<osg::PositionAttitudeTransform> pat{translateModel(model)};
-    rotateModel(pat);
     pat->addChild(model);
     return pat.release();
 }
@@ -425,11 +422,14 @@ osg::ref_ptr<osg::Node> createDroneModel()
     return model.release();
 }
 
-osg::ref_ptr<osg::Node> OSGWidget::createDrone(double bounding_radius)
+osg::ref_ptr<osg::PositionAttitudeTransform> OSGWidget::createDrone(double bounding_radius)
 {
     osg::ref_ptr<osg::Node> model{createDroneModel()};
     osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
-    osg::ref_ptr<osg::Node> transformed_model{transformModel(scaled_model)};
+    osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model)};
+    osg::ref_ptr<osg::Node> rotated_model{rotateModel(translated_model)};
+    osg::ref_ptr<osg::PositionAttitudeTransform> drone_at_origin{new osg::PositionAttitudeTransform};
+    drone_at_origin->addChild(rotated_model);
 
-    return transformed_model.release();
+    return drone_at_origin.release();
 }
