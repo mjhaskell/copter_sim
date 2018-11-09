@@ -1,4 +1,5 @@
 #include "osgwidget.hpp"
+#include "droneupdatecallback.hpp"
 
 #include <osg/Camera>
 #include <osg/Geode>
@@ -36,6 +37,7 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
 
     double drone_radius{0.3};
     osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
+    drone_pat->addUpdateCallback(new DroneUpdateCallback);
     m_root->addChild(drone_pat);
 
     this->setFocusPolicy(Qt::StrongFocus);
