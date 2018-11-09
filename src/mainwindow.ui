@@ -11,7 +11,11 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>CopterSim</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../icons/icons.qrc">
+    <normaloff>:/myicons/drone.png</normaloff>:/myicons/drone.png</iconset>
   </property>
   <widget class="OSGWidget" name="osg_widget"/>
   <widget class="QMenuBar" name="menubar">
@@ -34,6 +38,8 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>

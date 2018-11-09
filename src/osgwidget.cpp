@@ -290,47 +290,81 @@ void OSGWidget::setupCameraAndView()
     this->setupViewer();
 }
 
+osg::ref_ptr<osg::Vec3Array> getFloorVertices(float x, float y)
+{
+    float z{-0.01f};
+    osg::ref_ptr<osg::Vec3Array> vertices{new osg::Vec3Array};
+    vertices->push_back(osg::Vec3(-x, -y, z));
+    vertices->push_back(osg::Vec3(-x,  y, z));
+    vertices->push_back(osg::Vec3(x,   y, z));
+    vertices->push_back(osg::Vec3(x,  -y, z));
+    return vertices;
+}
+
+osg::ref_ptr<osg::Vec3Array> getFloorNormals()
+{
+    osg::ref_ptr<osg::Vec3Array> normals{new osg::Vec3Array};
+    osg::Vec3 normal_dir{0.0f, 0.0f, 1.0f};
+    normals->push_back(normal_dir);
+    normals->push_back(normal_dir);
+    normals->push_back(normal_dir);
+    normals->push_back(normal_dir);
+    return normals;
+}
+
+osg::ref_ptr<osg::Vec2Array> getTexCoords(float repetitions)
+{
+    osg::ref_ptr<osg::Vec2Array> tex_coords{new osg::Vec2Array};
+    float zero{0.f};
+    tex_coords->push_back(osg::Vec2{zero, zero});
+    tex_coords->push_back(osg::Vec2{zero, repetitions});
+    tex_coords->push_back(osg::Vec2{repetitions, repetitions});
+    tex_coords->push_back(osg::Vec2{repetitions, zero});
+    return tex_coords;
+}
+
+osg::Geometry* createFloorGeom()
+{
+    osg::Geometry *geom{new osg::Geometry};
+
+    float x_dim{100.f};
+    float y_dim{100.f};
+    osg::ref_ptr<osg::Vec3Array> vertices{getFloorVertices(x_dim,y_dim)};
+    geom->setVertexArray(vertices);
+
+    osg::ref_ptr<osg::Vec3Array> normals{getFloorNormals()};
+    geom->setNormalArray(normals, osg::Array::Binding::BIND_PER_VERTEX);
+
+    float repetions{100.f};
+    osg::ref_ptr<osg::Vec2Array> tex_coords{getTexCoords(repetions)};
+    geom->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, 4));
+    geom->setTexCoordArray(0, tex_coords.get());
+    osgUtil::SmoothingVisitor::smooth(*geom);
+    geom->setTexCoordArray(0, tex_coords.get(), osg::Array::Binding::BIND_PER_VERTEX);
+
+    return geom;
+}
+
+osg::ref_ptr<osg::Texture2D> createFloorTexture()
+{
+    osg::ref_ptr<osg::Texture2D> texture{new osg::Texture2D};
+    osg::ref_ptr<osg::Image> image{osgDB::readImageFile("../obj/tile.jpg")};
+    texture->setImage(image);
+    texture->setUnRefImageDataAfterApply(true);
+    texture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
+    texture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
+    return texture;
+}
+
 osg::ref_ptr<osg::Node> OSGWidget::createFloor()
 {
-    osg::ref_ptr<osg::Vec3Array> vertices{ new osg::Vec3Array };
-      osg::ref_ptr<osg::Vec2Array> tex_coords{ new osg::Vec2Array };
-      osg::ref_ptr<osg::Vec3Array> normals{ new osg::Vec3Array };
+    osg::Geometry *geom{createFloorGeom()};
+    osg::ref_ptr<osg::Texture2D> texture{createFloorTexture()};
 
-      vertices->push_back(osg::Vec3(-100.0f, -100.0f, -0.01f));
-      vertices->push_back(osg::Vec3(-100.0f, 100.0f, -0.01f));
-      vertices->push_back(osg::Vec3(100.0f, 100.0f, -0.01f));
-      vertices->push_back(osg::Vec3(100.0f, -100.0f, -0.01f));
+    osg::StateSet *geom_state_set = geom->getOrCreateStateSet();
+    geom_state_set->setTextureAttributeAndModes(0, texture.get(), osg::StateAttribute::ON);
 
-      normals->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
-      normals->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
-      normals->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
-      normals->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
-
-      tex_coords->push_back(osg::Vec2(0.0f, 0.0f));
-      tex_coords->push_back(osg::Vec2(0.0f, 100.0f));
-      tex_coords->push_back(osg::Vec2(100.0f, 100.0f));
-      tex_coords->push_back(osg::Vec2(100.0f, 0.0f));
-
-      osg::Geometry *geom{new osg::Geometry};
-      geom->setVertexArray(vertices);
-      geom->setNormalArray(normals, osg::Array::Binding::BIND_PER_VERTEX);
-      geom->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, 4));
-      geom->setTexCoordArray(0, tex_coords.get());
-      osgUtil::SmoothingVisitor::smooth(*geom);
-
-      geom->setTexCoordArray(0, tex_coords.get(), osg::Array::Binding::BIND_PER_VERTEX);
-
-      osg::ref_ptr<osg::Texture2D> texture{new osg::Texture2D};
-      osg::ref_ptr<osg::Image> image{osgDB::readImageFile("../obj/tile.jpg")};
-      texture->setImage(image);
-      texture->setUnRefImageDataAfterApply(true);
-      texture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
-      texture->setWrap(osg::Texture::WRAP_T, osg::Texture::REPEAT);
-
-      osg::StateSet *geom_state_set = geom->getOrCreateStateSet();
-      geom_state_set->setTextureAttributeAndModes(0, texture.get(), osg::StateAttribute::ON);
-
-      return geom;
+    return geom;
 }
 
 osg::Geometry* getOriginAxis(int x,int y,int z)
