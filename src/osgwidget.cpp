@@ -27,6 +27,11 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     m_root{new osg::Group}
 {
     this->setupCameraAndView();
+//    osg::Vec3d eye{-5,0,-1};
+//    osg::Vec3d center{0,0,-2.5};
+//    osg::Vec3d up{0,0,-1};
+////    m_viewer->getCameraWithFocus()->getViewMatrixAsLookAt(eye,center,up);
+//    m_manipulator->setTransformation(eye,center,up);
 
     osg::ref_ptr<osg::Node> floor{this->createFloor()};
     m_root->addChild(floor);
@@ -37,7 +42,7 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
 
     double drone_radius{0.3};
     osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
-    drone_pat->addUpdateCallback(new DroneUpdateCallback);
+    drone_pat->addUpdateCallback(new DroneUpdateCallback{m_manipulator});
     m_root->addChild(drone_pat);
 
     this->setFocusPolicy(Qt::StrongFocus);
