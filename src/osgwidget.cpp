@@ -29,10 +29,10 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     this->setupCameraAndView();
     this->setupEnvironment();
 
-//    double drone_radius{0.3};
-//    osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
-//    drone_pat->addUpdateCallback(new DroneUpdateCallback{m_manipulator});
-//    m_root->addChild(drone_pat);
+    double drone_radius{0.3};
+    osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
+    drone_pat->addUpdateCallback(new DroneUpdateCallback{m_manipulator});
+    m_root->addChild(drone_pat);
 
     this->setFocusPolicy(Qt::StrongFocus);
 //    this->setMouseTracking(true);
@@ -426,6 +426,11 @@ void OSGWidget::setupEnvironment()
     treehouse_pat->setPosition(osg::Vec3d{-10,65,-0.77*treehouse_radius});
     m_root->addChild(treehouse_pat);
 
+    double tower_radius{10.0};
+    osg::ref_ptr<osg::PositionAttitudeTransform> tower_pat{this->createTower(tower_radius)};
+    tower_pat->setPosition(osg::Vec3d{-20,-75,-0.795*tower_radius});
+    m_root->addChild(tower_pat);
+
     double cloud_radius{50.0};
     osg::ref_ptr<osg::Node> cloud{this->createCloud(cloud_radius)};
     int num_clouds{9};
@@ -579,7 +584,7 @@ osg::ref_ptr<osg::PositionAttitudeTransform> OSGWidget::createTreehouse(double b
 {
     osg::ref_ptr<osg::Node> model{createModel("../obj/treehouse.3ds")};
     osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
-    osg::Vec3d cog_offset{-0,-0,0};
+    osg::Vec3d cog_offset{0,0,0};
     osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model,cog_offset)};
     double angle{osg::DegreesToRadians(180.0)};
     osg::Vec3d axis1{1,0,0};
@@ -591,6 +596,24 @@ osg::ref_ptr<osg::PositionAttitudeTransform> OSGWidget::createTreehouse(double b
     treehouse_at_origin->addChild(rotated_model);
 
     return treehouse_at_origin.release();
+}
+
+osg::ref_ptr<osg::PositionAttitudeTransform> OSGWidget::createTower(double bounding_radius)
+{
+    osg::ref_ptr<osg::Node> model{createModel("../obj/tower.3ds")};
+    osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
+    osg::Vec3d cog_offset{0,0,0};
+    osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model,cog_offset)};
+    double angle{osg::DegreesToRadians(180.0)};
+    osg::Vec3d axis1{1,0,0};
+    osg::Vec3d axis2{0,0,1};
+    osg::Quat q1{angle,axis1};
+    osg::Quat q2{angle,axis2};
+    osg::ref_ptr<osg::Node> rotated_model{rotateModel(translated_model,q1*q2)};
+    osg::ref_ptr<osg::PositionAttitudeTransform> tower_at_origin{new osg::PositionAttitudeTransform};
+    tower_at_origin->addChild(rotated_model);
+
+    return tower_at_origin.release();
 }
 
 osg::ref_ptr<osg::Node> OSGWidget::createCloud(double bounding_radius)
