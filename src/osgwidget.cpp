@@ -45,13 +45,25 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     drone_pat->addUpdateCallback(new DroneUpdateCallback{m_manipulator});
     m_root->addChild(drone_pat);
 
+    double castle_radius{30.0};
+    osg::ref_ptr<osg::PositionAttitudeTransform> castle_pat{this->createCastle(castle_radius)};
+//    castle_pat->addUpdateCallback(new DroneUpdateCallback{m_manipulator});
+    castle_pat->setPosition(osg::Vec3d{50,50,-0.33*castle_radius});
+    m_root->addChild(castle_pat);
+
     this->setFocusPolicy(Qt::StrongFocus);
     this->setMouseTracking(true);
     this->update();
+
+    double framesPerSecond{30};
+    double timeStep{1.0/framesPerSecond};
+    double timerDurationInMilliSeconds{timeStep * 1000};
+    m_timer_id = startTimer(timerDurationInMilliSeconds);
 }
 
 OSGWidget::~OSGWidget()
 {
+    killTimer(m_timer_id);
 }
 
 void OSGWidget::timerEvent(QTimerEvent *)
@@ -228,11 +240,11 @@ void OSGWidget::repaintOsgGraphicsAfterInteraction(QEvent* event)
     {
     case QEvent::KeyPress:
     case QEvent::KeyRelease:
-    case QEvent::MouseButtonDblClick:
-    case QEvent::MouseButtonPress:
-    case QEvent::MouseButtonRelease:
-    case QEvent::MouseMove:
-    case QEvent::Wheel:
+//    case QEvent::MouseButtonDblClick:
+//    case QEvent::MouseButtonPress:
+//    case QEvent::MouseButtonRelease:
+//    case QEvent::MouseMove:
+//    case QEvent::Wheel:
         this->update();
         break;
 
@@ -253,7 +265,7 @@ void OSGWidget::setupCamera(osg::Camera* camera)
     osg::Vec4 color_rgba{0.0f, 0.6f, 1.0f, 1.0f};
     camera->setClearColor(color_rgba);
 
-    double angle_of_view{45.0};
+    double angle_of_view{70.0};
     double min_distance{1.0};
     double max_distance{1000.0};
     camera->setProjectionMatrixAsPerspective(angle_of_view, aspect_ratio, min_distance, max_distance);
@@ -264,7 +276,7 @@ void OSGWidget::setupView(osg::Camera* camera)
 {
     m_manipulator->setAllowThrow(false);
 
-    osg::Vec3d camera_location{0.0,-5.0,-1.0};
+    osg::Vec3d camera_location{-5.0,0,-1.0};
     osg::Vec3d camera_center_of_focus{0,0,0};
     osg::Vec3d worlds_up_direction{0,0,-1};
     m_manipulator->setHomePosition(camera_location,camera_center_of_focus,worlds_up_direction);
@@ -276,7 +288,7 @@ void OSGWidget::setupView(osg::Camera* camera)
     m_view->home();
     m_view->setLightingMode(osg::View::SKY_LIGHT);
     osg::Light *light{m_view->getLight()};
-    osg::Vec4 light_pos{0,0,-1,0};
+    osg::Vec4 light_pos{0,0,-100,0};
     light->setPosition(light_pos);
 }
 
@@ -353,7 +365,7 @@ osg::Geometry* createFloorGeom()
 osg::ref_ptr<osg::Texture2D> createFloorTexture()
 {
     osg::ref_ptr<osg::Texture2D> texture{new osg::Texture2D};
-    osg::ref_ptr<osg::Image> image{osgDB::readImageFile("../obj/tile.jpg")};
+    osg::ref_ptr<osg::Image> image{osgDB::readImageFile("../obj/grass1.jpg")};
     texture->setImage(image);
     texture->setUnRefImageDataAfterApply(true);
     texture->setWrap(osg::Texture::WRAP_S, osg::Texture::REPEAT);
@@ -425,34 +437,28 @@ osg::ref_ptr<osg::Node> scaleModel(const osg::ref_ptr<osg::Node> &model, double 
     return scale_trans.release();
 }
 
-osg::ref_ptr<osg::Node> rotateModel(const osg::ref_ptr<osg::Node> &model)
+osg::ref_ptr<osg::Node> rotateModel(const osg::ref_ptr<osg::Node> &model,const osg::Quat &q)
 {
-    double angle{osg::DegreesToRadians(90.0)};
-    osg::Vec3d axis1{1,0,0};
-    osg::Vec3d axis2{0,0,1};
-    osg::Quat q1{angle,axis1};
-    osg::Quat q2{angle,axis2};
     osg::ref_ptr<osg::PositionAttitudeTransform> pat{new osg::PositionAttitudeTransform};
-    pat->setAttitude(q1*q2);
+    pat->setAttitude(q);
     pat->addChild(model);
     return pat.release();
 }
 
-osg::ref_ptr<osg::Node> translateModel(const osg::ref_ptr<osg::Node> &model)
+osg::ref_ptr<osg::Node> translateModel(const osg::ref_ptr<osg::Node> &model,const osg::Vec3d &offset)
 {
     osg::BoundingSphere bb{model->getBound()};
     osg::ref_ptr<osg::PositionAttitudeTransform> pat{new osg::PositionAttitudeTransform};
     osg::Vec3d pos{bb.center()};
-    double cog_offset{-0.065};
-    pos = osg::Vec3d{-pos.x(),-pos.y()+cog_offset,-pos.z()};
+    pos = osg::Vec3d{-pos.x(),-pos.y(),-pos.z()} + offset;
     pat->setPosition(pos);
     pat->addChild(model);
     return pat.release();
 }
 
-osg::ref_ptr<osg::Node> createDroneModel()
+osg::ref_ptr<osg::Node> createModel(std::string name)
 {
-    osg::ref_ptr<osg::Node> model{osgDB::readNodeFile("../obj/simple_drone.obj")};
+    osg::ref_ptr<osg::Node> model{osgDB::readNodeFile(name)};
 
     if(model.valid())
     {
@@ -465,12 +471,34 @@ osg::ref_ptr<osg::Node> createDroneModel()
 
 osg::ref_ptr<osg::PositionAttitudeTransform> OSGWidget::createDrone(double bounding_radius)
 {
-    osg::ref_ptr<osg::Node> model{createDroneModel()};
+    osg::ref_ptr<osg::Node> model{createModel("../obj/simple_drone.obj")};
     osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
-    osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model)};
-    osg::ref_ptr<osg::Node> rotated_model{rotateModel(translated_model)};
+    osg::Vec3d cog_offset{0,-0.065,0};
+    osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model,cog_offset)};
+    double angle{osg::DegreesToRadians(90.0)};
+    osg::Vec3d axis1{1,0,0};
+    osg::Vec3d axis2{0,0,1};
+    osg::Quat q1{angle,axis1};
+    osg::Quat q2{angle,axis2};
+    osg::ref_ptr<osg::Node> rotated_model{rotateModel(translated_model,q1*q2)};
     osg::ref_ptr<osg::PositionAttitudeTransform> drone_at_origin{new osg::PositionAttitudeTransform};
     drone_at_origin->addChild(rotated_model);
 
     return drone_at_origin.release();
+}
+
+osg::ref_ptr<osg::PositionAttitudeTransform> OSGWidget::createCastle(double bounding_radius)
+{
+    osg::ref_ptr<osg::Node> model{createModel("../obj/castle.obj")};
+    osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
+    osg::Vec3d cog_offset{0,0,-0.1*bounding_radius};
+    osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model,cog_offset)};
+    double angle{osg::DegreesToRadians(180.0)};
+    osg::Vec3d axis{1,0,0};
+    osg::Quat q{angle,axis};
+    osg::ref_ptr<osg::Node> rotated_model{rotateModel(translated_model,q)};
+    osg::ref_ptr<osg::PositionAttitudeTransform> castle_at_origin{new osg::PositionAttitudeTransform};
+    castle_at_origin->addChild(rotated_model);
+
+    return castle_at_origin.release();
 }

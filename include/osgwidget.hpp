@@ -38,7 +38,6 @@ private:
   osg::ref_ptr<osgViewer::CompositeViewer> m_viewer;
   osg::ref_ptr<osgViewer::View> m_view;
   osg::ref_ptr<osgGA::TrackballManipulator> m_manipulator;
-//  osg::Quat m_q0;
   osg::ref_ptr<osg::Group> m_root;
   void setupCamera(osg::Camera* camera);
   void setupView(osg::Camera* camera);
@@ -47,6 +46,8 @@ private:
   osg::ref_ptr<osg::Node> createFloor();
   osg::ref_ptr<osg::Node> createOrigin(osg::Vec3d &scale_factor);
   osg::ref_ptr<osg::PositionAttitudeTransform> createDrone(double bounding_radius);
+  osg::ref_ptr<osg::PositionAttitudeTransform> createCastle(double bounding_radius);
+  int m_timer_id{0};
 };
 
 #endif // OSGWIDGET_HPP
