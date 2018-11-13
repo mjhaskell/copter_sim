@@ -45,8 +45,13 @@ private:
   void setupCameraAndView();
   osg::ref_ptr<osg::Node> createFloor();
   osg::ref_ptr<osg::Node> createOrigin(osg::Vec3d &scale_factor);
+  void setupEnvironment();
   osg::ref_ptr<osg::PositionAttitudeTransform> createDrone(double bounding_radius);
   osg::ref_ptr<osg::PositionAttitudeTransform> createCastle(double bounding_radius);
+  osg::ref_ptr<osg::PositionAttitudeTransform> createTreehouse(double bounding_radius);
+  osg::ref_ptr<osg::Node> createCloud(double bounding_radius);
+  osg::ref_ptr<osg::Node> createPinetree(double bounding_radius);
+  osg::ref_ptr<osg::Node> createTree(double bounding_radius);
   int m_timer_id{0};
 };
 

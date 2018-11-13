@@ -4,7 +4,7 @@
 
 DroneUpdateCallback::DroneUpdateCallback(osg::ref_ptr<osgGA::TrackballManipulator> manipulator) :
     m_manipulator{manipulator},
-    m_max_angle{osg::DegreesToRadians(30.0)},
+    m_max_angle{osg::DegreesToRadians(17.0)},
     m_eye{-5.0,0,-1.0},
     m_center{0,0,0},
     m_up{0,0,-1.0}
@@ -41,7 +41,7 @@ void DroneUpdateCallback::operator()(osg::Node *node, osg::NodeVisitor *nv)
     pat->setPosition(pos);
     this->updateManipulator();
 
-    if (m_z > -1)
+    if (m_z > -3)
         m_z -= 0.01;
     if(m_y_up)
     {

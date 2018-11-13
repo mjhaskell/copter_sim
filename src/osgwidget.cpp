@@ -27,23 +27,12 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     m_root{new osg::Group}
 {
     this->setupCameraAndView();
+    this->setupEnvironment();
 
-    osg::ref_ptr<osg::Node> floor{this->createFloor()};
-    m_root->addChild(floor);
-
-    osg::Vec3d scale_factor{1,1,1};
-    osg::ref_ptr<osg::Node> origin_pat{this->createOrigin(scale_factor)};
-    m_root->addChild(origin_pat);
-
-    double drone_radius{0.3};
-    osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
-    drone_pat->addUpdateCallback(new DroneUpdateCallback{m_manipulator});
-    m_root->addChild(drone_pat);
-
-    double castle_radius{30.0};
-    osg::ref_ptr<osg::PositionAttitudeTransform> castle_pat{this->createCastle(castle_radius)};
-    castle_pat->setPosition(osg::Vec3d{50,50,-0.33*castle_radius});
-    m_root->addChild(castle_pat);
+//    double drone_radius{0.3};
+//    osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
+//    drone_pat->addUpdateCallback(new DroneUpdateCallback{m_manipulator});
+//    m_root->addChild(drone_pat);
 
     this->setFocusPolicy(Qt::StrongFocus);
 //    this->setMouseTracking(true);
@@ -259,7 +248,7 @@ void OSGWidget::setupCamera(osg::Camera* camera)
     osg::Vec4 color_rgba{0.0f, 0.6f, 1.0f, 1.0f};
     camera->setClearColor(color_rgba);
 
-    double angle_of_view{70.0};
+    double angle_of_view{60.0};
     double min_distance{1.0};
     double max_distance{1000.0};
     camera->setProjectionMatrixAsPerspective(angle_of_view, aspect_ratio, min_distance, max_distance);
@@ -418,6 +407,95 @@ osg::ref_ptr<osg::Node> OSGWidget::createOrigin(osg::Vec3d &scale_factor)
     return transform;
 }
 
+void OSGWidget::setupEnvironment()
+{
+    osg::ref_ptr<osg::Node> floor{this->createFloor()};
+    m_root->addChild(floor);
+
+    osg::Vec3d scale_factor{1,1,1};
+    osg::ref_ptr<osg::Node> origin_pat{this->createOrigin(scale_factor)};
+    m_root->addChild(origin_pat);
+
+    double castle_radius{40.0};
+    osg::ref_ptr<osg::PositionAttitudeTransform> castle_pat{this->createCastle(castle_radius)};
+    castle_pat->setPosition(osg::Vec3d{50,50,-0.33*castle_radius});
+    m_root->addChild(castle_pat);
+
+    double treehouse_radius{11.0};
+    osg::ref_ptr<osg::PositionAttitudeTransform> treehouse_pat{this->createTreehouse(treehouse_radius)};
+    treehouse_pat->setPosition(osg::Vec3d{-10,65,-0.77*treehouse_radius});
+    m_root->addChild(treehouse_pat);
+
+    double cloud_radius{50.0};
+    osg::ref_ptr<osg::Node> cloud{this->createCloud(cloud_radius)};
+    int num_clouds{9};
+    osg::ref_ptr<osg::PositionAttitudeTransform> cloud_pat[num_clouds];
+    osg::Vec3d cloud_pos[num_clouds];
+    cloud_pos[0] = osg::Vec3d{-200,-150,-150};
+    cloud_pos[1] = osg::Vec3d{-150,150,-140};
+    cloud_pos[2] = osg::Vec3d{150,-150,-160};
+    cloud_pos[3] = osg::Vec3d{150,150,-170};
+    cloud_pos[4] = osg::Vec3d{-100,-50,-140};
+    cloud_pos[5] = osg::Vec3d{50,200,-150};
+    cloud_pos[6] = osg::Vec3d{250,0,-130};
+    cloud_pos[7] = osg::Vec3d{0,-250,-160};
+    cloud_pos[8] = osg::Vec3d{0,0,-170};
+    for (int i{0}; i < num_clouds; i++)
+    {
+        cloud_pat[i] = new osg::PositionAttitudeTransform;
+        cloud_pat[i]->addChild(cloud);
+        cloud_pat[i]->setPosition(cloud_pos[i]);
+        m_root->addChild(cloud_pat[i]);
+    }
+
+    double pinetree_radius{10};
+    osg::ref_ptr<osg::Node> pinetree{this->createPinetree(pinetree_radius)};
+    int num_pinetrees{10};
+    osg::ref_ptr<osg::PositionAttitudeTransform> pinetree_pat[num_pinetrees];
+    osg::Vec3d pinetree_pos[num_pinetrees];
+    pinetree_pos[0] = osg::Vec3d{50,85,-0.848*pinetree_radius};
+    pinetree_pos[1] = osg::Vec3d{85,65,-0.848*pinetree_radius};
+    pinetree_pos[2] = osg::Vec3d{85,-85,-0.848*pinetree_radius};
+    pinetree_pos[3] = osg::Vec3d{80,-65,-0.848*pinetree_radius};
+    pinetree_pos[4] = osg::Vec3d{60,-30,-0.848*pinetree_radius};
+    pinetree_pos[5] = osg::Vec3d{50,-50,-0.848*pinetree_radius};
+    pinetree_pos[6] = osg::Vec3d{85,-10,-0.848*pinetree_radius};
+    pinetree_pos[7] = osg::Vec3d{75,25,-0.848*pinetree_radius};
+    pinetree_pos[8] = osg::Vec3d{30,-80,-0.848*pinetree_radius};
+    pinetree_pos[9] = osg::Vec3d{65,-75,-0.848*pinetree_radius};
+    for (int i{0}; i < num_pinetrees; i++)
+    {
+        pinetree_pat[i] = new osg::PositionAttitudeTransform;
+        pinetree_pat[i]->addChild(pinetree);
+        pinetree_pat[i]->setPosition(pinetree_pos[i]);
+        m_root->addChild(pinetree_pat[i]);
+    }
+
+    double tree_radius{8};
+    osg::ref_ptr<osg::Node> tree{this->createTree(tree_radius)};
+    int num_trees{11};
+    osg::ref_ptr<osg::PositionAttitudeTransform> tree_pat[num_trees];
+    osg::Vec3d tree_pos[num_trees];
+    tree_pos[0] = osg::Vec3d{-55,-85,-0.695*tree_radius};
+    tree_pos[1] = osg::Vec3d{-55,85,-0.695*tree_radius};
+    tree_pos[2] = osg::Vec3d{-85,85,-0.695*tree_radius};
+    tree_pos[3] = osg::Vec3d{-70,55,-0.695*tree_radius};
+    tree_pos[4] = osg::Vec3d{-55,25,-0.695*tree_radius};
+    tree_pos[5] = osg::Vec3d{-85,25,-0.695*tree_radius};
+    tree_pos[6] = osg::Vec3d{-70,0,-0.695*tree_radius};
+    tree_pos[7] = osg::Vec3d{-55,-25,-0.695*tree_radius};
+    tree_pos[8] = osg::Vec3d{-85,-25,-0.695*tree_radius};
+    tree_pos[9] = osg::Vec3d{-70,-55,-0.695*tree_radius};
+    tree_pos[10] = osg::Vec3d{-85,-85,-0.695*tree_radius};
+    for (int i{0}; i < num_trees; i++)
+    {
+        tree_pat[i] = new osg::PositionAttitudeTransform;
+        tree_pat[i]->addChild(tree);
+        tree_pat[i]->setPosition(tree_pos[i]);
+        m_root->addChild(tree_pat[i]);
+    }
+}
+
 osg::ref_ptr<osg::Node> scaleModel(const osg::ref_ptr<osg::Node> &model, double bounding_radius)
 {
     osg::BoundingSphere bb{model->getBound()};
@@ -495,4 +573,60 @@ osg::ref_ptr<osg::PositionAttitudeTransform> OSGWidget::createCastle(double boun
     castle_at_origin->addChild(rotated_model);
 
     return castle_at_origin.release();
+}
+
+osg::ref_ptr<osg::PositionAttitudeTransform> OSGWidget::createTreehouse(double bounding_radius)
+{
+    osg::ref_ptr<osg::Node> model{createModel("../obj/treehouse.3ds")};
+    osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
+    osg::Vec3d cog_offset{-0,-0,0};
+    osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model,cog_offset)};
+    double angle{osg::DegreesToRadians(180.0)};
+    osg::Vec3d axis1{1,0,0};
+    osg::Vec3d axis2{0,0,1};
+    osg::Quat q1{angle,axis1};
+    osg::Quat q2{angle,axis2};
+    osg::ref_ptr<osg::Node> rotated_model{rotateModel(translated_model,q1*q2)};
+    osg::ref_ptr<osg::PositionAttitudeTransform> treehouse_at_origin{new osg::PositionAttitudeTransform};
+    treehouse_at_origin->addChild(rotated_model);
+
+    return treehouse_at_origin.release();
+}
+
+osg::ref_ptr<osg::Node> OSGWidget::createCloud(double bounding_radius)
+{
+    osg::ref_ptr<osg::Node> model{createModel("../obj/cloud.obj")};
+    osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
+    osg::Vec3d cog_offset{0,0,0};
+    osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model,cog_offset)};
+
+    return translated_model.release();
+}
+
+osg::ref_ptr<osg::Node> OSGWidget::createPinetree(double bounding_radius)
+{
+    osg::ref_ptr<osg::Node> model{createModel("../obj/firtree1.3ds")};
+    osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
+    osg::Vec3d cog_offset{0,0,0};
+    osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model,cog_offset)};
+    double angle{osg::DegreesToRadians(180.0)};
+    osg::Vec3d axis{1,0,0};
+    osg::Quat q{angle,axis};
+    osg::ref_ptr<osg::Node> rotated_model{rotateModel(translated_model,q)};
+
+    return rotated_model.release();
+}
+
+osg::ref_ptr<osg::Node> OSGWidget::createTree(double bounding_radius)
+{
+    osg::ref_ptr<osg::Node> model{createModel("../obj/Tree2.3ds")};
+    osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
+    osg::Vec3d cog_offset{0,0,0};
+    osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model,cog_offset)};
+    double angle{osg::DegreesToRadians(180.0)};
+    osg::Vec3d axis{1,0,0};
+    osg::Quat q{angle,axis};
+    osg::ref_ptr<osg::Node> rotated_model{rotateModel(translated_model,q)};
+
+    return rotated_model.release();
 }
