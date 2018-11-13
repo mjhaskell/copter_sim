@@ -27,11 +27,6 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     m_root{new osg::Group}
 {
     this->setupCameraAndView();
-//    osg::Vec3d eye{-5,0,-1};
-//    osg::Vec3d center{0,0,-2.5};
-//    osg::Vec3d up{0,0,-1};
-////    m_viewer->getCameraWithFocus()->getViewMatrixAsLookAt(eye,center,up);
-//    m_manipulator->setTransformation(eye,center,up);
 
     osg::ref_ptr<osg::Node> floor{this->createFloor()};
     m_root->addChild(floor);
@@ -47,18 +42,17 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
 
     double castle_radius{30.0};
     osg::ref_ptr<osg::PositionAttitudeTransform> castle_pat{this->createCastle(castle_radius)};
-//    castle_pat->addUpdateCallback(new DroneUpdateCallback{m_manipulator});
     castle_pat->setPosition(osg::Vec3d{50,50,-0.33*castle_radius});
     m_root->addChild(castle_pat);
 
     this->setFocusPolicy(Qt::StrongFocus);
-    this->setMouseTracking(true);
+//    this->setMouseTracking(true);
     this->update();
 
-    double framesPerSecond{30};
-    double timeStep{1.0/framesPerSecond};
-    double timerDurationInMilliSeconds{timeStep * 1000};
-    m_timer_id = startTimer(timerDurationInMilliSeconds);
+    double frames_per_second{30};
+    double time_step{1.0/frames_per_second};
+    double timer_duration_ms{time_step * 1000};
+    m_timer_id = startTimer(timer_duration_ms);
 }
 
 OSGWidget::~OSGWidget()
@@ -240,9 +234,9 @@ void OSGWidget::repaintOsgGraphicsAfterInteraction(QEvent* event)
     {
     case QEvent::KeyPress:
     case QEvent::KeyRelease:
-//    case QEvent::MouseButtonDblClick:
-//    case QEvent::MouseButtonPress:
-//    case QEvent::MouseButtonRelease:
+    case QEvent::MouseButtonDblClick:
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonRelease:
 //    case QEvent::MouseMove:
 //    case QEvent::Wheel:
         this->update();
