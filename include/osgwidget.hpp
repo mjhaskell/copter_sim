@@ -45,6 +45,11 @@ private:
   void setupCameraAndView();
   osg::ref_ptr<osg::Node> createFloor();
   osg::ref_ptr<osg::Node> createOrigin(osg::Vec3d &scale_factor);
+  void insertGround();
+  void insertStructures();
+  void insertClouds();
+  void insertPinetrees();
+  void insertTrees();
   void setupEnvironment();
   osg::ref_ptr<osg::PositionAttitudeTransform> createDrone(double bounding_radius);
   osg::ref_ptr<osg::PositionAttitudeTransform> createCastle(double bounding_radius);

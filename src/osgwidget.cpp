@@ -407,7 +407,7 @@ osg::ref_ptr<osg::Node> OSGWidget::createOrigin(osg::Vec3d &scale_factor)
     return transform;
 }
 
-void OSGWidget::setupEnvironment()
+void OSGWidget::insertGround()
 {
     osg::ref_ptr<osg::Node> floor{this->createFloor()};
     m_root->addChild(floor);
@@ -415,7 +415,10 @@ void OSGWidget::setupEnvironment()
     osg::Vec3d scale_factor{1,1,1};
     osg::ref_ptr<osg::Node> origin_pat{this->createOrigin(scale_factor)};
     m_root->addChild(origin_pat);
+}
 
+void OSGWidget::insertStructures()
+{
     double castle_radius{40.0};
     osg::ref_ptr<osg::PositionAttitudeTransform> castle_pat{this->createCastle(castle_radius)};
     castle_pat->setPosition(osg::Vec3d{50,50,-0.33*castle_radius});
@@ -430,7 +433,10 @@ void OSGWidget::setupEnvironment()
     osg::ref_ptr<osg::PositionAttitudeTransform> tower_pat{this->createTower(tower_radius)};
     tower_pat->setPosition(osg::Vec3d{-20,-75,-0.795*tower_radius});
     m_root->addChild(tower_pat);
+}
 
+void OSGWidget::insertClouds()
+{
     double cloud_radius{50.0};
     osg::ref_ptr<osg::Node> cloud{this->createCloud(cloud_radius)};
     int num_clouds{9};
@@ -452,7 +458,10 @@ void OSGWidget::setupEnvironment()
         cloud_pat[i]->setPosition(cloud_pos[i]);
         m_root->addChild(cloud_pat[i]);
     }
+}
 
+void OSGWidget::insertPinetrees()
+{
     double pinetree_radius{10};
     osg::ref_ptr<osg::Node> pinetree{this->createPinetree(pinetree_radius)};
     int num_pinetrees{10};
@@ -475,7 +484,10 @@ void OSGWidget::setupEnvironment()
         pinetree_pat[i]->setPosition(pinetree_pos[i]);
         m_root->addChild(pinetree_pat[i]);
     }
+}
 
+void OSGWidget::insertTrees()
+{
     double tree_radius{8};
     osg::ref_ptr<osg::Node> tree{this->createTree(tree_radius)};
     int num_trees{11};
@@ -499,6 +511,15 @@ void OSGWidget::setupEnvironment()
         tree_pat[i]->setPosition(tree_pos[i]);
         m_root->addChild(tree_pat[i]);
     }
+}
+
+void OSGWidget::setupEnvironment()
+{
+    insertGround();
+    insertStructures();
+    insertClouds();
+    insertPinetrees();
+    insertTrees();
 }
 
 osg::ref_ptr<osg::Node> scaleModel(const osg::ref_ptr<osg::Node> &model, double bounding_radius)
