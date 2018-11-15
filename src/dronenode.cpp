@@ -2,6 +2,7 @@
 #include <string>
 #include "nav_msgs/Odometry.h"
 #include "rosflight_msgs/Command.h"
+#include <osg/Quat>
 
 namespace quad
 {
@@ -76,6 +77,13 @@ void DroneNode::updateDynamics()
 {
     if (m_odom.pose.pose.position.z > -3)
         m_odom.pose.pose.position.z -= 0.01;
+    osg::Quat q{m_odom.pose.pose.orientation.x,m_odom.pose.pose.orientation.y,
+               m_odom.pose.pose.orientation.z,m_odom.pose.pose.orientation.w};
+    q*=osg::Quat{osg::DegreesToRadians(10.0),osg::Vec3d{1,0,0}};
+    m_odom.pose.pose.orientation.w = q.w();
+    m_odom.pose.pose.orientation.x = q.x();
+    m_odom.pose.pose.orientation.y = q.y();
+    m_odom.pose.pose.orientation.z = q.z();
     emit statesChanged(&m_odom);
 }
 
