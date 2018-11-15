@@ -3,8 +3,10 @@
 
 #include <QMainWindow>
 #include "dronenode.hpp"
+#include <QProcess>
 
-namespace Ui {
+namespace Ui
+{
 class MainWindow;
 }
 
@@ -25,6 +27,7 @@ private:
     Ui::MainWindow *m_ui;
     quad::DroneNode m_drone_node;
     QToolBar *m_main_toolbar{nullptr};
+    QProcess *m_process{nullptr};
 };
 
 #endif // MAINWINDOW_HPP

@@ -3,12 +3,17 @@
 #include "osgwidget.hpp"
 #include "dronenode.hpp"
 #include <QToolBar>
+#include <QProcess>
 
 MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     QMainWindow(parent),
     m_ui(new Ui::MainWindow),
-    m_drone_node{argc,argv}
+    m_drone_node{argc,argv},
+    m_process{new QProcess{this}}
 {
+    QString program{"roscore"};
+    m_process->start(program);
+
     m_ui->setupUi(this);
     OSGWidget *osg_widget{new OSGWidget};
     setCentralWidget(osg_widget);
@@ -21,6 +26,7 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete m_ui;
+    m_process->close();
 }
 
 void MainWindow::createToolbar()
