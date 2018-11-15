@@ -18,19 +18,16 @@ void DroneUpdateCallback::updateManipulator()
 {
     osg::Vec3d pos_i{m_pos.x()-m_eye.x(),m_pos.y(),0};
     osg::Vec3d pos_c{m_q_i2c.conj()*pos_i};
+
     double angle_to_drone{atan2(pos_c.y(),pos_c.x())};
+    double rot_angle{0};
     if (angle_to_drone > m_max_angle)
-    {
-        double rot_angle{angle_to_drone - m_max_angle};
-        m_q_i2c *= osg::Quat{rot_angle,osg::Vec3d{0,0,1}};
-    }
+        rot_angle = angle_to_drone - m_max_angle;
     else if (angle_to_drone < -m_max_angle)
-    {
-        double rot_angle{angle_to_drone + m_max_angle};
-        m_q_i2c *= osg::Quat{rot_angle,osg::Vec3d{0,0,1}};
-    }
-    double mag{pos_c.length()};
-    osg::Vec3d cam_center{mag,0,0};
+        rot_angle = angle_to_drone + m_max_angle;
+    m_q_i2c.makeRotate(rot_angle,-m_up);
+
+    osg::Vec3d cam_center{pos_c.length(),0,0};
     cam_center = m_q_i2c*cam_center;
     m_center.set(cam_center.x()+m_eye.x(),cam_center.y(),m_pos.z());
 
