@@ -13,7 +13,7 @@ DroneUpdateCallback::DroneUpdateCallback(osg::ref_ptr<osgGA::TrackballManipulato
 
 void DroneUpdateCallback::updateManipulator()
 {
-    osg::Vec3d pos_i{m_x-m_eye.x(),m_y,0};
+    osg::Vec3d pos_i{m_pos.x()-m_eye.x(),m_pos.y(),0};
     osg::Vec3d pos_c{m_q_i2c.conj()*pos_i};
     double angle_to_drone{atan2(pos_c.y(),pos_c.x())};
     if (angle_to_drone > m_max_angle)
@@ -29,40 +29,40 @@ void DroneUpdateCallback::updateManipulator()
     double mag{pos_c.length()};
     osg::Vec3d cam_center{mag,0,0};
     cam_center = m_q_i2c*cam_center;
-    m_center.set(cam_center.x()+m_eye.x(),cam_center.y(),m_z);
+    m_center.set(cam_center.x()+m_eye.x(),cam_center.y(),m_pos.z());
 
     m_manipulator->setTransformation(m_eye,m_center,m_up);
 }
 
 void DroneUpdateCallback::operator()(osg::Node *node, osg::NodeVisitor *nv)
 {
-    osg::Vec3d pos{m_x,m_y,m_z};
+//    osg::Vec3d pos{m_x,m_y,m_z};
     osg::PositionAttitudeTransform *pat{dynamic_cast<osg::PositionAttitudeTransform*>(node)};
-    pat->setPosition(pos);
+    pat->setPosition(m_pos);
     this->updateManipulator();
 
-    if (m_z > -3)
-        m_z -= 0.01;
-    if(m_y_up)
-    {
-        m_y_count++;
-        m_y -= .02;
-    }
-    else
-    {
-        m_y_count--;
-        m_y += .02;
-    }
-    if(m_x_up)
-    {
-        m_x_count++;
-        m_x -= .02;
-    }
-    else
-    {
-        m_x_count--;
-        m_x += .02;
-    }
+//    if (m_pos.z() > -3)
+//        m_pos.z() -= 0.01;
+//    if(m_y_up)
+//    {
+//        m_y_count++;
+//        m_pos.y() -= .02;
+//    }
+//    else
+//    {
+//        m_y_count--;
+//        m_pos.y() += .02;
+//    }
+//    if(m_x_up)
+//    {
+//        m_x_count++;
+//        m_pos.x() -= .02;
+//    }
+//    else
+//    {
+//        m_x_count--;
+//        m_pos.x() += .02;
+//    }
 //    if (m_y < 5)
 //    {
 //        m_y += 0.03;
@@ -75,4 +75,10 @@ void DroneUpdateCallback::operator()(osg::Node *node, osg::NodeVisitor *nv)
         m_x_up=!m_x_up;
 
     traverse(node, nv);
+}
+
+void DroneUpdateCallback::updateStates(osg::Vec3d new_pos, osg::Quat new_att)
+{
+    m_pos = new_pos;
+    m_att = new_att;
 }

@@ -24,14 +24,15 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     m_viewer{new osgViewer::CompositeViewer},
     m_view{new osgViewer::View},
     m_manipulator{new osgGA::TrackballManipulator},
-    m_root{new osg::Group}
+    m_root{new osg::Group},
+    m_drone_update_callback{new DroneUpdateCallback{m_manipulator}}
 {
     this->setupCameraAndView();
     this->setupEnvironment();
 
     double drone_radius{0.3};
     osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
-    drone_pat->addUpdateCallback(new DroneUpdateCallback{m_manipulator});
+    drone_pat->addUpdateCallback(m_drone_update_callback);
     m_root->addChild(drone_pat);
 
     this->setFocusPolicy(Qt::StrongFocus);
@@ -47,6 +48,16 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
 OSGWidget::~OSGWidget()
 {
     killTimer(m_timer_id);
+}
+
+void OSGWidget::updateDroneStates(nav_msgs::Odometry* odom)
+{
+    osg::Vec3d pos{odom->pose.pose.position.x,odom->pose.pose.position.y,odom->pose.pose.position.z};
+    osg::Quat att{odom->pose.pose.orientation.x,
+                 odom->pose.pose.orientation.y,
+                 odom->pose.pose.orientation.z,
+                 odom->pose.pose.orientation.w};
+    m_drone_update_callback->updateStates(pos,att);
 }
 
 void OSGWidget::timerEvent(QTimerEvent *)

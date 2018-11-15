@@ -8,6 +8,8 @@
 #include <osgViewer/CompositeViewer>
 #include <osgGA/TrackballManipulator>
 #include <osgText/Text>
+#include <dronenode.hpp>
+#include "droneupdatecallback.hpp"
 
 class OSGWidget : public QOpenGLWidget
 {
@@ -16,6 +18,9 @@ class OSGWidget : public QOpenGLWidget
 public:
   OSGWidget(QWidget* parent = 0,Qt::WindowFlags f = 0);
   virtual ~OSGWidget();
+
+public slots:
+  void updateDroneStates(nav_msgs::Odometry* odom);
 
 protected:
   virtual void paintEvent(QPaintEvent* paintEvent);
@@ -39,6 +44,7 @@ private:
   osg::ref_ptr<osgViewer::View> m_view;
   osg::ref_ptr<osgGA::TrackballManipulator> m_manipulator;
   osg::ref_ptr<osg::Group> m_root;
+  osg::ref_ptr<DroneUpdateCallback> m_drone_update_callback;
   void setupCamera(osg::Camera* camera);
   void setupView(osg::Camera* camera);
   void setupViewer();
