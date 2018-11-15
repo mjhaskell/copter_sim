@@ -44,6 +44,8 @@ set(MYSOURCE
     src/osgwidget.cpp
     include/droneupdatecallback.hpp
     src/droneupdatecallback.cpp
+    src/dronenode.cpp
+    include/dronenode.hpp
     )
 
 set(MYRESOURCES icons/icons.qrc)
