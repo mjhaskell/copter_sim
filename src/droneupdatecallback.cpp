@@ -4,7 +4,10 @@
 
 DroneUpdateCallback::DroneUpdateCallback(osg::ref_ptr<osgGA::TrackballManipulator> manipulator) :
     m_manipulator{manipulator},
+    m_q_i2c{0,0,0,1},
     m_max_angle{osg::DegreesToRadians(17.0)},
+    m_pos{0,0,0},
+    m_att{0,0,0,1},
     m_eye{-5.0,0,-1.0},
     m_center{0,0,0},
     m_up{0,0,-1.0}
@@ -36,43 +39,10 @@ void DroneUpdateCallback::updateManipulator()
 
 void DroneUpdateCallback::operator()(osg::Node *node, osg::NodeVisitor *nv)
 {
-//    osg::Vec3d pos{m_x,m_y,m_z};
     osg::PositionAttitudeTransform *pat{dynamic_cast<osg::PositionAttitudeTransform*>(node)};
     pat->setPosition(m_pos);
+    pat->setAttitude(m_att);
     this->updateManipulator();
-
-//    if (m_pos.z() > -3)
-//        m_pos.z() -= 0.01;
-//    if(m_y_up)
-//    {
-//        m_y_count++;
-//        m_pos.y() -= .02;
-//    }
-//    else
-//    {
-//        m_y_count--;
-//        m_pos.y() += .02;
-//    }
-//    if(m_x_up)
-//    {
-//        m_x_count++;
-//        m_pos.x() -= .02;
-//    }
-//    else
-//    {
-//        m_x_count--;
-//        m_pos.x() += .02;
-//    }
-//    if (m_y < 5)
-//    {
-//        m_y += 0.03;
-//        m_x-=.01;
-//    }
-
-    if(m_y_count==250 || m_y_count==-250)
-        m_y_up=!m_y_up;
-    if(m_y_count==500 || m_y_count==0)
-        m_x_up=!m_x_up;
 
     traverse(node, nv);
 }
