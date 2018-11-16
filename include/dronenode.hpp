@@ -54,6 +54,7 @@ signals:
     void statesChanged(nav_msgs::Odometry* odom);
 
 private:
+    std::string m_node_name{"drone_node"};
     int m_argc;
     char** m_argv;
     state_t m_x;
@@ -62,6 +63,7 @@ private:
     nav_msgs::Odometry m_odom;
     ros::Publisher m_state_pub;
     ros::Subscriber m_cmd_sub;
+    void setupRosComms();
     void updateDynamics();
     void cmdCallback(const rosflight_msgs::CommandConstPtr &msg);
 };

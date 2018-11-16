@@ -22,6 +22,7 @@ protected:
     void updateManipulator();
 
 private:
+    osg::Vec3d m_pos_offset;
     osg::Vec3d m_pos;
     osg::Quat  m_att;
     osg::Vec3d m_eye;

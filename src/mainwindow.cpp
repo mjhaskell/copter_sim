@@ -13,6 +13,7 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
 {
     QString program{"roscore"};
     m_process->start(program);
+    m_app_started_roscore = true;
 
     m_ui->setupUi(this);
     OSGWidget *osg_widget{new OSGWidget};
@@ -26,7 +27,16 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
 MainWindow::~MainWindow()
 {
     delete m_ui;
-    m_process->close();
+    if (m_app_started_roscore)
+    {
+        m_process->close();
+        QProcess kill_roscore;
+        QProcess kill_rosmaster;
+        kill_roscore.start(QString{"killall"}, QStringList() << "-9" << "roscore");
+        kill_rosmaster.start(QString{"killall"}, QStringList() << "-9" << "rosmaster");
+        kill_roscore.close();
+        kill_rosmaster.close();
+    }
 }
 
 void MainWindow::createToolbar()

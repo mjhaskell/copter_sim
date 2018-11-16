@@ -582,7 +582,7 @@ osg::ref_ptr<osg::PositionAttitudeTransform> OSGWidget::createDrone(double bound
 {
     osg::ref_ptr<osg::Node> model{createModel("../obj/simple_drone.obj")};
     osg::ref_ptr<osg::Node> scaled_model{scaleModel(model,bounding_radius)};
-    osg::Vec3d cog_offset{0,-0.065,0};
+    osg::Vec3d cog_offset{0,-0.02,0};
     osg::ref_ptr<osg::Node> translated_model{translateModel(scaled_model,cog_offset)};
     double angle{osg::DegreesToRadians(90.0)};
     osg::Vec3d axis1{1,0,0};

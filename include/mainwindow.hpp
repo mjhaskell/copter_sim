@@ -28,6 +28,7 @@ private:
     quad::DroneNode m_drone_node;
     QToolBar *m_main_toolbar{nullptr};
     QProcess *m_process{nullptr};
+    bool m_app_started_roscore{false};
 };
 
 #endif // MAINWINDOW_HPP

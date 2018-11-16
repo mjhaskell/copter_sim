@@ -6,6 +6,7 @@ DroneUpdateCallback::DroneUpdateCallback(osg::ref_ptr<osgGA::TrackballManipulato
     m_manipulator{manipulator},
     m_q_i2c{0,0,0,1},
     m_max_angle{osg::DegreesToRadians(17.0)},
+    m_pos_offset{0,0,-0.045},
     m_pos{0,0,0},
     m_att{0,0,0,1},
     m_eye{-5.0,0,-1.0},
@@ -25,11 +26,11 @@ void DroneUpdateCallback::updateManipulator()
         rot_angle = angle_to_drone - m_max_angle;
     else if (angle_to_drone < -m_max_angle)
         rot_angle = angle_to_drone + m_max_angle;
-    m_q_i2c.makeRotate(rot_angle,-m_up);
+    m_q_i2c *= osg::Quat{rot_angle,-m_up};
 
-    osg::Vec3d cam_center{pos_c.length(),0,0};
-    cam_center = m_q_i2c*cam_center;
-    m_center.set(cam_center.x()+m_eye.x(),cam_center.y(),m_pos.z());
+    m_center.set(pos_c.length(),0,0);
+    m_center = m_q_i2c*m_center;
+    m_center.set(m_center.x()+m_eye.x(),m_center.y(),m_pos.z());
 
     m_manipulator->setTransformation(m_eye,m_center,m_up);
 }
@@ -37,7 +38,7 @@ void DroneUpdateCallback::updateManipulator()
 void DroneUpdateCallback::operator()(osg::Node *node, osg::NodeVisitor *nv)
 {
     osg::PositionAttitudeTransform *pat{dynamic_cast<osg::PositionAttitudeTransform*>(node)};
-    pat->setPosition(m_pos);
+    pat->setPosition(m_pos+m_pos_offset);
     pat->setAttitude(m_att);
     this->updateManipulator();
 
