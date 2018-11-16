@@ -35,6 +35,8 @@ if (NOT TARGET gtest)
     add_subdirectory(libs/googletest)
 endif()
 
+add_subdirectory(libs/dynamics)
+
 set(MYSOURCE
     src/main.cpp
     src/mainwindow.cpp
