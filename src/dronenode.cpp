@@ -1,4 +1,5 @@
 #include "dronenode.hpp"
+#include <ros/ros.h>
 #include <string>
 #include "nav_msgs/Odometry.h"
 #include "rosflight_msgs/Command.h"

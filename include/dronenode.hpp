@@ -10,21 +10,21 @@ namespace quad
 {
 typedef struct
 {
-  double pn;
-  double pe;
-  double pd;
+    double pn;
+    double pe;
+    double pd;
 
-  double phi;
-  double theta;
-  double psi;
+    double phi;
+    double theta;
+    double psi;
 
-  double u;
-  double v;
-  double w;
+    double u;
+    double v;
+    double w;
 
-  double p;
-  double q;
-  double r;
+    double p;
+    double q;
+    double r;
 }state_t;
 
 typedef struct
