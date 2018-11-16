@@ -1,3 +1,6 @@
 [submodule "libs/googletest"]
 	path = libs/googletest
 	url = https://github.com/google/googletest.git
+[submodule "libs/dynamics"]
+	path = libs/dynamics
+	url = https://github.com/mhask94/dynamics.git
