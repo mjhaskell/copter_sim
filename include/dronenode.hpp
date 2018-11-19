@@ -5,6 +5,7 @@
 #include <QThread>
 #include "nav_msgs/Odometry.h"
 #include "rosflight_msgs/Command.h"
+#include "drone.hpp"
 
 namespace quad
 {
@@ -57,6 +58,7 @@ private:
     std::string m_node_name{"drone_node"};
     int m_argc;
     char** m_argv;
+    dyn::Drone m_drone;
     state_t m_x;
     input_t m_u;
     uint8_t m_control_mode;

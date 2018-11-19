@@ -52,7 +52,7 @@ OSGWidget::~OSGWidget()
 
 void OSGWidget::updateDroneStates(nav_msgs::Odometry* odom)
 {
-    osg::Vec3d pos{odom->pose.pose.position.x,odom->pose.pose.position.y,odom->pose.pose.position.z};
+    osg::Vec3d pos{odom->pose.pose.position.x,odom->pose.pose.position.y,-odom->pose.pose.position.z};
     osg::Quat att{odom->pose.pose.orientation.x,
                  odom->pose.pose.orientation.y,
                  odom->pose.pose.orientation.z,

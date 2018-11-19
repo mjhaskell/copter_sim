@@ -1,6 +1,13 @@
 cmake_minimum_required(VERSION 3.4)
 project(CopterSim)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED 1)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+
 find_package(Qt5Widgets)
 find_package(Qt5Gui)
 find_package(OpenSceneGraph REQUIRED COMPONENTS 
@@ -16,17 +23,7 @@ find_package(catkin REQUIRED COMPONENTS
     rosflight_msgs
     )
 
-include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS}
-    ${catkin_INCLUDE_DIRS}
-    include
-    )
-
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED 1)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON)
+add_subdirectory(libs/dynamics)
 
 if (NOT TARGET gtest)
     # Prevent GoogleTest from overriding our compiler/linker options
@@ -35,7 +32,11 @@ if (NOT TARGET gtest)
     add_subdirectory(libs/googletest)
 endif()
 
-add_subdirectory(libs/dynamics)
+include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS}
+    ${catkin_INCLUDE_DIRS}
+    include
+    libs/dynamics/include
+    )
 
 set(MYSOURCE
     src/main.cpp
@@ -58,6 +59,7 @@ add_executable(${PROJECT_NAME}
     )
 
 target_link_libraries(${PROJECT_NAME}
+    Dynamics
     ${OPENSCENEGRAPH_LIBRARIES}
     ${catkin_LIBRARIES}
     Qt5::Widgets
