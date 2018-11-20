@@ -112,7 +112,7 @@ void DroneNode::cmdCallback(const rosflight_msgs::CommandConstPtr &msg)
         m_u.F = msg->F;
         break;
     default:
-        ROS_ERROR("FlightControllerNode: Unhandled command message of type %d",msg->mode);
+        ROS_ERROR("DroneNode: Unhandled command message of type %d",msg->mode);
         break;
     }
 }

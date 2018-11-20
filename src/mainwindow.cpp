@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "osgwidget.hpp"
 #include "dronenode.hpp"
+#include <ros/ros.h>
 #include <QToolBar>
 #include <QProcess>
 
@@ -11,9 +12,15 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     m_drone_node{argc,argv},
     m_process{new QProcess{this}}
 {
-    QString program{"roscore"};
-    m_process->start(program);
-    m_app_started_roscore = true;
+    ros::init(argc,argv,"main");
+    if (!ros::master::check())
+    {
+        QString program{"roscore"};
+        m_process->start(program);
+        m_app_started_roscore = true;
+        std::string uri{ros::master::getURI()};
+        ROS_WARN("This application started a roscore on %s and will shut it down upon closing.",uri.c_str());
+    }
 
     m_ui->setupUi(this);
     OSGWidget *osg_widget{new OSGWidget};
