@@ -4,7 +4,6 @@
 #include <string>
 #include "nav_msgs/Odometry.h"
 #include "rosflight_msgs/Command.h"
-//#include <osg/Quat>
 #include "quat.hpp"
 
 namespace quad
@@ -80,23 +79,18 @@ void DroneNode::setupRosComms()
 void DroneNode::updateDynamics()
 {
     dyn::uVec u;
-    u << 0.8,0.8,0.8,0.8;
+    u << 0.55,0.56,0.55,0.56;
     m_drone.sendMotorCmds(u);
     dyn::xVec x{m_drone.getStates()};
-    quat::Quatd q{quat::Quatd::from_euler(x(dyn::RX),x(dyn::RY),x(dyn::RZ))};
     m_odom.pose.pose.position.x = x(dyn::PX);
     m_odom.pose.pose.position.y = x(dyn::PY);
     m_odom.pose.pose.position.z = x(dyn::PZ);
-//    if (m_odom.pose.pose.position.z > -3)
-//    {
-//        m_odom.pose.pose.position.z -= 0.01;
-//        m_odom.pose.pose.position.y -= 0.01;
-//    }
-
+    quat::Quatd q{quat::Quatd::from_euler(x(dyn::RX),x(dyn::RY),x(dyn::RZ))};
     m_odom.pose.pose.orientation.w = q.w();
     m_odom.pose.pose.orientation.x = q.x();
     m_odom.pose.pose.orientation.y = q.y();
     m_odom.pose.pose.orientation.z = q.z();
+
     emit statesChanged(&m_odom);
 }
 
