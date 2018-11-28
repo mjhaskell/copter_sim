@@ -38,10 +38,13 @@ MainWindow::~MainWindow()
     {
         m_process->close();
         QProcess kill_roscore;
-        QProcess kill_rosmaster;
         kill_roscore.start(QString{"killall"}, QStringList() << "-9" << "roscore");
-        kill_rosmaster.start(QString{"killall"}, QStringList() << "-9" << "rosmaster");
+        kill_roscore.waitForFinished();
         kill_roscore.close();
+
+        QProcess kill_rosmaster;
+        kill_rosmaster.start(QString{"killall"}, QStringList() << "-9" << "rosmaster");
+        kill_rosmaster.waitForFinished();
         kill_rosmaster.close();
     }
 }
