@@ -19,16 +19,25 @@ public:
     ~MainWindow();
 
 protected:
+    bool rosIsConnected();
+    void updateRosStatus();
+    void startRosCore();
     void createToolbar();
+    void setupStatusBar();
     QAction* createStartAction();
     void startSimulation();
+    QAction *createRoscoreAction();
 
 private:
     Ui::MainWindow *m_ui;
+    int m_argc;
+    char** m_argv;
     quad::DroneNode m_drone_node;
     QToolBar *m_main_toolbar{nullptr};
     QProcess *m_process{nullptr};
     bool m_app_started_roscore{false};
+    QIcon m_check_icon{QIcon{":myicons/check.png"}};
+    QIcon m_x_icon{QIcon{":myicons/red_x.jpg"}};
 };
 
 #endif // MAINWINDOW_HPP

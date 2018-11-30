@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>833</width>
+    <height>678</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,13 +17,40 @@
    <iconset resource="../icons/icons.qrc">
     <normaloff>:/myicons/drone.png</normaloff>:/myicons/drone.png</iconset>
   </property>
-  <widget class="QWidget" name="centralWidget"/>
+  <widget class="QWidget" name="centralWidget">
+   <widget class="QLabel" name="ros_label">
+    <property name="geometry">
+     <rect>
+      <x>610</x>
+      <y>620</y>
+      <width>121</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ROS Connection:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="connection_label">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>620</y>
+      <width>67</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>TextLabel</string>
+    </property>
+   </widget>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>833</width>
      <height>22</height>
     </rect>
    </property>
