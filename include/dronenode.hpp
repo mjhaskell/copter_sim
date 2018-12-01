@@ -4,42 +4,10 @@
 #include <ros/ros.h>
 #include <QThread>
 #include "nav_msgs/Odometry.h"
-#include "rosflight_msgs/Command.h"
 #include "drone.hpp"
 
 namespace quad
 {
-typedef struct
-{
-    double pn;
-    double pe;
-    double pd;
-
-    double phi;
-    double theta;
-    double psi;
-
-    double u;
-    double v;
-    double w;
-
-    double p;
-    double q;
-    double r;
-}state_t;
-
-typedef struct
-{
-    double u1;
-    double u2;
-    double u3;
-    double u4;
-
-    double F;
-    double phi_c;
-    double theta_c;
-    double r_c;
-}input_t;
 
 class DroneNode : public QThread
 {
@@ -47,27 +15,33 @@ class DroneNode : public QThread
 public:
     DroneNode(int argc, char** argv);
     virtual ~DroneNode();
+    bool rosIsConnected();
     bool init();
     bool init(const std::string &master_url,const std::string &host_url);
+    void setUseRos(const bool use_ros);
+    bool useRos() const;
     void run();
 
 signals:
     void statesChanged(nav_msgs::Odometry* odom);
 
+protected:
+    void runRosNode();
+    void runNode();
+    void setupRosComms(const std::string topic="states");
+    void updateDynamics();
+    void stateCallback(const nav_msgs::OdometryConstPtr &msg);
+
 private:
-    std::string m_node_name{"drone_node"};
     int m_argc;
     char** m_argv;
+    bool m_use_ros;
+    std::string m_node_name{"drone_node"};
     dyn::Drone m_drone;
-    state_t m_x;
-    input_t m_u;
-    uint8_t m_control_mode;
+    double m_rate;
     nav_msgs::Odometry m_odom;
+    ros::Subscriber m_state_sub;
     ros::Publisher m_state_pub;
-    ros::Subscriber m_cmd_sub;
-    void setupRosComms();
-    void updateDynamics();
-    void cmdCallback(const rosflight_msgs::CommandConstPtr &msg);
 };
 
 } // end namespace quad

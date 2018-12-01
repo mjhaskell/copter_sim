@@ -19,7 +19,6 @@ public:
     ~MainWindow();
 
 protected:
-    bool rosIsConnected();
     void updateRosStatus();
     void startRosCore();
     void createToolbar();
@@ -27,6 +26,14 @@ protected:
     QAction* createStartAction();
     void startSimulation();
     QAction *createRoscoreAction();
+
+private slots:
+    void on_start_triggered();
+    void on_close_triggered();
+    void on_roscore_button_clicked();
+    void on_ros_check_box_clicked();
+
+    void on_view_ROS_Settings_Panel_triggered();
 
 private:
     Ui::MainWindow *m_ui;

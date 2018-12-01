@@ -5,13 +5,16 @@
 #include "nav_msgs/Odometry.h"
 #include "rosflight_msgs/Command.h"
 #include "quat.hpp"
+#include <chrono>
 
 namespace quad
 {
 
 DroneNode::DroneNode(int argc, char **argv) :
     m_argc{argc},
-    m_argv{argv}
+    m_argv{argv},
+    m_use_ros{false},
+    m_rate{m_drone.getDt()}
 {
     m_odom.pose.pose.position.x = 0;
     m_odom.pose.pose.position.y = 0;
@@ -19,7 +22,7 @@ DroneNode::DroneNode(int argc, char **argv) :
     m_odom.pose.pose.orientation.w = 1;
     m_odom.pose.pose.orientation.x = 0;
     m_odom.pose.pose.orientation.y = 0;
-    m_odom.pose.pose.orientation.z = 0;
+    m_odom.pose.pose.orientation.z = 0;    
 }
 
 DroneNode::~DroneNode()
@@ -32,12 +35,21 @@ DroneNode::~DroneNode()
     wait();
 }
 
-bool DroneNode::init()
+bool DroneNode::rosIsConnected()
 {
     ros::init(m_argc,m_argv,m_node_name);
-    if (!ros::master::check())
-        return false;
-    this->setupRosComms();
+    return ros::master::check();
+}
+
+bool DroneNode::init()
+{
+    if (m_use_ros)
+    {
+        if (!rosIsConnected())
+            return false;
+        this->setupRosComms();
+    }
+    start();
     return true;
 }
 
@@ -50,10 +62,29 @@ bool DroneNode::init(const std::string &master_url, const std::string &host_url)
     if (!ros::master::check())
         return false;
     this->setupRosComms();
+    start();
     return true;
 }
 
+void DroneNode::setUseRos(const bool use_ros)
+{
+    m_use_ros = use_ros;
+}
+
+bool DroneNode::useRos() const
+{
+    return m_use_ros;
+}
+
 void DroneNode::run()
+{
+    if (m_use_ros)
+        this->runRosNode();
+    else
+        this->runNode();
+}
+
+void DroneNode::runRosNode()
 {
     ros::Rate publish_rate{500};
     while (ros::ok())
@@ -65,15 +96,23 @@ void DroneNode::run()
     }
 }
 
-void DroneNode::setupRosComms()
+void DroneNode::runNode()
+{
+    while (true)
+    {
+        auto t_start{std::chrono::high_resolution_clock::now()};
+        this->updateDynamics();
+        while(std::chrono::duration<double,std::milli>(std::chrono::high_resolution_clock::now()-t_start).count() < m_rate) {}
+    }
+}
+
+void DroneNode::setupRosComms(const std::string topic)
 {
     ros::start();
     ros::NodeHandle nh;
-    int states_queue_size{25};
-    int cmd_queue_size{50};
+    int states_queue_size{50};
+    m_state_sub = nh.subscribe(topic, states_queue_size, &DroneNode::stateCallback, this);
     m_state_pub = nh.advertise<nav_msgs::Odometry>("states", states_queue_size);
-    m_cmd_sub = nh.subscribe("commands", cmd_queue_size, &DroneNode::cmdCallback,this);
-    start();
 }
 
 void DroneNode::updateDynamics()
@@ -94,27 +133,17 @@ void DroneNode::updateDynamics()
     emit statesChanged(&m_odom);
 }
 
-void DroneNode::cmdCallback(const rosflight_msgs::CommandConstPtr &msg)
+void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr &msg)
 {
-    m_control_mode = msg->mode;
-    switch(msg->mode)
-    {
-    case rosflight_msgs::Command::MODE_PASS_THROUGH:
-        m_u.u1 = msg->x;
-        m_u.u2 = msg->y;
-        m_u.u3 = msg->z;
-        m_u.u4 = msg->F;
-        break;
-    case rosflight_msgs::Command::MODE_ROLL_PITCH_YAWRATE_ALTITUDE:
-        m_u.phi_c = msg->x;
-        m_u.theta_c = msg->y;
-        m_u.r_c = msg->z;
-        m_u.F = msg->F;
-        break;
-    default:
-        ROS_ERROR("DroneNode: Unhandled command message of type %d",msg->mode);
-        break;
-    }
+    m_odom.pose.pose.position.x = msg->pose.pose.position.x;
+    m_odom.pose.pose.position.y = msg->pose.pose.position.y;
+    m_odom.pose.pose.position.z = msg->pose.pose.position.z;
+    m_odom.pose.pose.orientation.w = msg->pose.pose.orientation.w;
+    m_odom.pose.pose.orientation.x = msg->pose.pose.orientation.x;
+    m_odom.pose.pose.orientation.y = msg->pose.pose.orientation.y;
+    m_odom.pose.pose.orientation.z = msg->pose.pose.orientation.z;
+
+    emit statesChanged(&m_odom);
 }
 
 } // end namespace quad

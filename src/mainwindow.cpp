@@ -16,7 +16,6 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     m_process{new QProcess{this}}
 {
     m_ui->setupUi(this);
-//    ros::init(m_argc,m_argv,"test");
 
     OSGWidget *osg_widget{new OSGWidget};
     setCentralWidget(osg_widget);
@@ -45,20 +44,9 @@ MainWindow::~MainWindow()
     }
 }
 
-bool MainWindow::rosIsConnected()
-{
-    ros::init(m_argc,m_argv,"test");
-    bool test{ros::master::check()};
-    ros::shutdown();
-    ros::waitForShutdown();
-    bool testt{ros::isInitialized()};
-
-    return test;
-}
-
 void MainWindow::updateRosStatus()
 {
-    if(rosIsConnected())
+    if(m_drone_node.rosIsConnected())
         m_ui->connection_label->setPixmap(m_check_icon.pixmap(16,16));
     else
         m_ui->connection_label->setPixmap(m_x_icon.pixmap(16,16));
@@ -66,10 +54,11 @@ void MainWindow::updateRosStatus()
 
 void MainWindow::startRosCore()
 {
-    if (!rosIsConnected())
+    if (!m_drone_node.rosIsConnected())
     {
         QString program{"roscore"};
         m_process->start(program);
+        while (!m_drone_node.rosIsConnected()) {}
         m_app_started_roscore = true;
         m_ui->statusbar->showMessage(tr("Started ROS Core"),5000);
     }
@@ -94,6 +83,7 @@ void MainWindow::setupStatusBar()
     this->updateRosStatus();
     m_ui->statusbar->addPermanentWidget(m_ui->ros_label);
     m_ui->statusbar->addPermanentWidget(m_ui->connection_label);
+    m_ui->connection_label->hide();
 
 }
 
@@ -110,10 +100,8 @@ QAction* MainWindow::createStartAction()
 
 void MainWindow::startSimulation()
 {
-    this->updateRosStatus();
-    if(rosIsConnected())
-        m_drone_node.init();
-    else
+    bool test{m_drone_node.init()};
+    if (!test)
         QMessageBox::warning(this,tr("NO ROS MASTER DETECTED!"),
                       tr("Can not start the simulation. Connect to a ros master and try again."));
 }
@@ -123,7 +111,41 @@ QAction* MainWindow::createRoscoreAction()
     const QIcon ros_icon{QIcon(":myicons/ros.png")};
     QAction *start_ros_action{new QAction(ros_icon, tr("&Start ROS core"), this)};
     start_ros_action->setStatusTip(tr("This will start a ROS core on local machine"));
-    connect(start_ros_action, &QAction::triggered, this, &MainWindow::startRosCore);
+    connect(start_ros_action, &QAction::triggered, this, &MainWindow::on_view_ROS_Settings_Panel_triggered);
 
     return start_ros_action;
+}
+
+void MainWindow::on_start_triggered()
+{
+    this->startSimulation();
+}
+
+void MainWindow::on_close_triggered()
+{
+    QApplication::quit();
+}
+
+
+void MainWindow::on_roscore_button_clicked()
+{
+    this->startRosCore();
+}
+
+void MainWindow::on_ros_check_box_clicked()
+{
+    m_drone_node.setUseRos(m_ui->ros_check_box->isChecked());
+}
+
+void MainWindow::on_view_ROS_Settings_Panel_triggered()
+{
+    if (m_ui->ros_dock->isVisible())
+        m_ui->ros_dock->hide();
+    else
+        m_ui->ros_dock->show();
+}
+
+void MainWindow::on_view_ROS_Connection_Status_triggered()
+{
+
 }
