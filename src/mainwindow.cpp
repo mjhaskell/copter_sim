@@ -21,6 +21,7 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     setCentralWidget(osg_widget);
     this->createToolbar();
     this->setupStatusBar();
+    m_ui->ros_dock->hide();
 
     connect(&m_drone_node,&quad::DroneNode::statesChanged,
             osg_widget, &OSGWidget::updateDroneStates);
@@ -84,7 +85,7 @@ void MainWindow::setupStatusBar()
     m_ui->statusbar->addPermanentWidget(m_ui->ros_label);
     m_ui->statusbar->addPermanentWidget(m_ui->connection_label);
     m_ui->connection_label->hide();
-
+    m_ui->ros_label->hide();
 }
 
 QAction* MainWindow::createStartAction()
@@ -111,7 +112,7 @@ QAction* MainWindow::createRoscoreAction()
     const QIcon ros_icon{QIcon(":myicons/ros.png")};
     QAction *start_ros_action{new QAction(ros_icon, tr("&Start ROS core"), this)};
     start_ros_action->setStatusTip(tr("This will start a ROS core on local machine"));
-    connect(start_ros_action, &QAction::triggered, this, &MainWindow::on_view_ROS_Settings_Panel_triggered);
+    connect(start_ros_action, &QAction::triggered, this, &MainWindow::on_view_ros_settings_panel_triggered);
 
     return start_ros_action;
 }
@@ -126,7 +127,6 @@ void MainWindow::on_close_triggered()
     QApplication::quit();
 }
 
-
 void MainWindow::on_roscore_button_clicked()
 {
     this->startRosCore();
@@ -134,18 +134,45 @@ void MainWindow::on_roscore_button_clicked()
 
 void MainWindow::on_ros_check_box_clicked()
 {
+    if (m_ui->ros_check_box->isChecked())
+    {
+        m_ui->ros_label->show();
+        m_ui->connection_label->show();
+    }
+    else if(!m_ui->view_ros_connection_status->isChecked())
+    {
+        m_ui->ros_label->hide();
+        m_ui->connection_label->hide();
+    }
     m_drone_node.setUseRos(m_ui->ros_check_box->isChecked());
 }
 
-void MainWindow::on_view_ROS_Settings_Panel_triggered()
+void MainWindow::on_view_ros_settings_panel_triggered()
 {
     if (m_ui->ros_dock->isVisible())
+    {
+        m_ui->view_ros_settings_panel->setChecked(false);
         m_ui->ros_dock->hide();
+    }
     else
+    {
+        m_ui->view_ros_settings_panel->setChecked(true);
         m_ui->ros_dock->show();
+    }
 }
 
-void MainWindow::on_view_ROS_Connection_Status_triggered()
+void MainWindow::on_view_ros_connection_status_triggered()
 {
-
+    if (m_ui->ros_label->isVisible())
+    {
+        m_ui->view_ros_connection_status->setChecked(false);
+        m_ui->connection_label->hide();
+        m_ui->ros_label->hide();
+    }
+    else
+    {
+        m_ui->view_ros_connection_status->setChecked(true);
+        m_ui->connection_label->show();
+        m_ui->ros_label->show();
+    }
 }

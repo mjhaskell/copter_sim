@@ -32,8 +32,8 @@ private slots:
     void on_close_triggered();
     void on_roscore_button_clicked();
     void on_ros_check_box_clicked();
-
-    void on_view_ROS_Settings_Panel_triggered();
+    void on_view_ros_settings_panel_triggered();
+    void on_view_ros_connection_status_triggered();
 
 private:
     Ui::MainWindow *m_ui;

@@ -72,8 +72,8 @@
     <property name="title">
      <string>View</string>
     </property>
-    <addaction name="view_ROS_Settings_Panel"/>
-    <addaction name="view_ROS_Connection_Status"/>
+    <addaction name="view_ros_settings_panel"/>
+    <addaction name="view_ros_connection_status"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -96,44 +96,79 @@
     <widget class="QWidget" name="gridLayoutWidget">
      <property name="geometry">
       <rect>
-       <x>-1</x>
+       <x>9</x>
        <y>-1</y>
-       <width>221</width>
+       <width>201</width>
        <height>601</height>
       </rect>
      </property>
-     <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
+     <layout class="QGridLayout" name="gridLayout" columnstretch="1,30,1">
+      <item row="0" column="1">
        <widget class="QCheckBox" name="ros_check_box">
         <property name="text">
          <string>Use ROS</string>
         </property>
        </widget>
       </item>
+      <item row="1" column="2">
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
       <item row="1" column="0">
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="1" column="1">
        <widget class="QTabWidget" name="tabWidget">
+        <property name="contextMenuPolicy">
+         <enum>Qt::PreventContextMenu</enum>
+        </property>
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
         <widget class="QWidget" name="master_tab">
+         <property name="contextMenuPolicy">
+          <enum>Qt::DefaultContextMenu</enum>
+         </property>
          <attribute name="title">
-          <string>Tab 1</string>
+          <string>Master</string>
          </attribute>
          <widget class="QWidget" name="verticalLayoutWidget">
           <property name="geometry">
            <rect>
             <x>-1</x>
             <y>-1</y>
-            <width>221</width>
-            <height>541</height>
+            <width>201</width>
+            <height>291</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
+          <layout class="QGridLayout" name="gridLayout_2" rowstretch="3,1" rowminimumheight="0,0">
+           <item row="0" column="0">
             <widget class="QGroupBox" name="groupBox">
              <property name="title">
-              <string>ROS Master</string>
+              <string>Connect to ROS master</string>
              </property>
             </widget>
            </item>
-           <item>
+           <item row="1" column="0">
             <widget class="QGroupBox" name="groupBox_2">
              <property name="enabled">
               <bool>true</bool>
@@ -159,9 +194,9 @@
           </layout>
          </widget>
         </widget>
-        <widget class="QWidget" name="tab_2">
+        <widget class="QWidget" name="topic_tab">
          <attribute name="title">
-          <string>Tab 2</string>
+          <string>Topic</string>
          </attribute>
         </widget>
        </widget>
@@ -180,7 +215,7 @@
     <string>Close</string>
    </property>
   </action>
-  <action name="view_ROS_Settings_Panel">
+  <action name="view_ros_settings_panel">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -188,7 +223,7 @@
     <string>ROS Settings Panel</string>
    </property>
   </action>
-  <action name="view_ROS_Connection_Status">
+  <action name="view_ros_connection_status">
    <property name="checkable">
     <bool>true</bool>
    </property>
