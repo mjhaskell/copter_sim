@@ -19,6 +19,9 @@ public:
     ~MainWindow();
 
 protected:
+    void closeEvent(QCloseEvent *);
+    void readSettings();
+    void writeSettings();
     void updateRosStatus();
     void startRosCore();
     void createToolbar();

@@ -6,6 +6,7 @@
 #include <QToolBar>
 #include <QProcess>
 #include <QMessageBox>
+#include <QSettings>
 
 MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     QMainWindow(parent),
@@ -22,6 +23,7 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     this->createToolbar();
     this->setupStatusBar();
     m_ui->ros_dock->hide();
+    this->readSettings();
 
     connect(&m_drone_node,&quad::DroneNode::statesChanged,
             osg_widget, &OSGWidget::updateDroneStates);
@@ -35,14 +37,63 @@ MainWindow::~MainWindow()
     {
         m_process->close();
         QProcess kill_roscore;
-        kill_roscore.start(QString{"killall"}, QStringList() << "-9" << "roscore");
+        kill_roscore.start(QString{"killall"}, QStringList{} << "-9" << "roscore");
         kill_roscore.waitForFinished();
         kill_roscore.close();
 
         QProcess kill_rosmaster;
-        kill_rosmaster.start(QString{"killall"}, QStringList() << "-9" << "rosmaster");
+        kill_rosmaster.start(QString{"killall"}, QStringList{} << "-9" << "rosmaster");
         kill_rosmaster.waitForFinished();
         kill_rosmaster.close();
+    }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    m_drone_node.stopRunning();
+    this->writeSettings();
+    QMainWindow::closeEvent(event);
+}
+
+void MainWindow::readSettings()
+{
+    QSettings settings{"Qt-Ros Package", "CopterSim"};
+    QString master_url{settings.value("master_url",QString{"http://localhost:11311/"}).toString()};
+    QString host_url{settings.value("host_url", QString{"localhost"}).toString()};
+    m_ui->master_line_edit->setText(master_url);
+    m_ui->host_line_edit->setText(host_url);
+    bool remember{settings.value("remember_settings", false).toBool()};
+    m_ui->remember_check_box->setChecked(remember);
+    bool checked{settings.value("use_environment_variables", false).toBool()};
+    m_ui->use_env_check_box->setChecked(checked);
+    if (checked)
+    {
+        m_ui->master_line_edit->setEnabled(false);
+        m_ui->host_line_edit->setEnabled(false);
+        m_ui->ip_button->setEnabled(false);
+    }
+    m_use_ros_ip = !settings.value("use_ip", true).toBool();
+    on_ip_button_clicked();
+}
+
+void MainWindow::writeSettings()
+{
+    QSettings settings("Qt-Ros Package", "CopterSim");
+    if (m_ui->remember_check_box->isChecked())
+    {
+        settings.setValue("master_url",m_ui->master_line_edit->text());
+        settings.setValue("host_url",m_ui->host_line_edit->text());
+        settings.setValue("use_environment_variables",QVariant{m_ui->use_env_check_box->isChecked()});
+        settings.setValue("remember_settings",QVariant{m_ui->remember_check_box->isChecked()});
+        settings.setValue("use_ip",QVariant{m_use_ros_ip});
+    }
+    else
+    {
+        settings.setValue("master_url",QString{"http://localhost:11311/"});
+        settings.setValue("host_url", QString{"localhost"});
+        settings.setValue("use_environment_variables", false);
+        settings.setValue("remember_settings", false);
+        settings.setValue("use_ip", true);
     }
 }
 
@@ -122,6 +173,8 @@ void MainWindow::on_start_triggered()
 
 void MainWindow::on_close_triggered()
 {
+    m_drone_node.stopRunning();
+    this->writeSettings();
     close();
 }
 
@@ -129,7 +182,7 @@ void MainWindow::closeWithWarning()
 {
     this->updateRosStatus();
     QMessageBox::warning(this,tr("LOST CONNECTION TO ROS MASTER!"),tr("The program can no longer detect the ROS master. It is going to close."));
-    close();
+    on_close_triggered();
 }
 
 void MainWindow::on_roscore_button_clicked()
@@ -153,11 +206,13 @@ void MainWindow::on_ros_check_box_clicked()
     {
         m_ui->ros_label->show();
         m_ui->connection_label->show();
+        m_ui->view_ros_connection_status->setChecked(true);
     }
-    else if(!m_ui->view_ros_connection_status->isChecked())
+    else
     {
         m_ui->ros_label->hide();
         m_ui->connection_label->hide();
+        m_ui->view_ros_connection_status->setChecked(false);
     }
     m_ui->ros_tab_widget->setEnabled(m_ui->ros_check_box->isChecked());
     m_drone_node.setUseRos(m_ui->ros_check_box->isChecked());
