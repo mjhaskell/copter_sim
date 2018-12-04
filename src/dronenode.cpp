@@ -14,7 +14,8 @@ DroneNode::DroneNode(int argc, char **argv) :
     m_argc{argc},
     m_argv{argv},
     m_use_ros{false},
-    m_rate{m_drone.getDt()}
+    m_rate{m_drone.getDt()},
+    m_ros_is_connected{false}
 {
     m_odom.pose.pose.position.x = 0;
     m_odom.pose.pose.position.y = 0;
@@ -35,35 +36,31 @@ DroneNode::~DroneNode()
     wait();
 }
 
-bool DroneNode::rosIsConnected()
+bool DroneNode::rosIsConnected() const
 {
-    ros::init(m_argc,m_argv,m_node_name);
-    return ros::master::check();
+    return m_ros_is_connected;
 }
 
 bool DroneNode::init()
 {
-    if (m_use_ros)
-    {
-        if (!rosIsConnected())
-            return false;
-        this->setupRosComms();
-    }
-    start();
-    return true;
+    ros::init(m_argc,m_argv,m_node_name);
+    if (!ros::master::check())
+        return false;
+    return m_ros_is_connected = true;
 }
 
-bool DroneNode::init(const std::string &master_url, const std::string &host_url)
+bool DroneNode::init(const std::string &master_url, const std::string &host_url,bool use_ip)
 {
     std::map<std::string,std::string> remappings;
     remappings["__master"] = master_url;
-    remappings["__hostname"] = host_url;
+    if (use_ip)
+        remappings["__ip"] = host_url;
+    else
+        remappings["__hostname"] = host_url;
     ros::init(remappings,m_node_name);
     if (!ros::master::check())
         return false;
-    this->setupRosComms();
-    start();
-    return true;
+    return m_ros_is_connected = true;
 }
 
 void DroneNode::setUseRos(const bool use_ros)
@@ -84,16 +81,30 @@ void DroneNode::run()
         this->runNode();
 }
 
+bool DroneNode::startNode()
+{
+    if (m_use_ros)
+    {
+        if (!ros::master::check())
+            return false;
+        this->setupRosComms();
+    }
+    start();
+    return true;
+}
+
 void DroneNode::runRosNode()
 {
     ros::Rate publish_rate{500};
-    while (ros::ok())
+    while (ros::ok() && ros::master::check())
     {
         this->updateDynamics();
         m_state_pub.publish(m_odom);
         ros::spinOnce();
         publish_rate.sleep();
     }
+    m_ros_is_connected = false;
+    emit rosLostConnection();
 }
 
 void DroneNode::runNode()

@@ -27,6 +27,9 @@ protected:
     void startSimulation();
     QAction *createRoscoreAction();
 
+public slots:
+    void closeWithWarning();
+
 private slots:
     void on_start_triggered();
     void on_close_triggered();
@@ -34,6 +37,9 @@ private slots:
     void on_ros_check_box_clicked();
     void on_view_ros_settings_panel_triggered();
     void on_view_ros_connection_status_triggered();
+    void on_master_connect_button_clicked();
+    void on_use_env_check_box_clicked(bool checked);
+    void on_ip_button_clicked();
 
 private:
     Ui::MainWindow *m_ui;
@@ -45,6 +51,7 @@ private:
     bool m_app_started_roscore{false};
     QIcon m_check_icon{QIcon{":myicons/check.png"}};
     QIcon m_x_icon{QIcon{":myicons/red_x.jpg"}};
+    bool m_use_ros_ip{true};
 };
 
 #endif // MAINWINDOW_HPP

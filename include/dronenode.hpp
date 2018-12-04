@@ -15,15 +15,17 @@ class DroneNode : public QThread
 public:
     DroneNode(int argc, char** argv);
     virtual ~DroneNode();
-    bool rosIsConnected();
+    bool rosIsConnected() const;
     bool init();
-    bool init(const std::string &master_url,const std::string &host_url);
+    bool init(const std::string &master_url,const std::string &host_url,bool use_ip=true);
     void setUseRos(const bool use_ros);
     bool useRos() const;
     void run();
+    bool startNode();
 
 signals:
     void statesChanged(nav_msgs::Odometry* odom);
+    void rosLostConnection();
 
 protected:
     void runRosNode();
@@ -42,6 +44,7 @@ private:
     nav_msgs::Odometry m_odom;
     ros::Subscriber m_state_sub;
     ros::Publisher m_state_pub;
+    bool m_ros_is_connected;
 };
 
 } // end namespace quad
