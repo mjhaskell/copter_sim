@@ -109,7 +109,10 @@ void MainWindow::startRosCore()
 {
     QString program{"roscore"};
     m_process->start(program);
-    while (!m_drone_node.init()) {}
+    std::string master_uri{"http://localhost:11311/"};
+    std::string host_uri{"localhost"};
+    bool use_ros_ip{false};
+    while (!m_drone_node.init(master_uri,host_uri,use_ros_ip)) {}
     m_app_started_roscore = true;
 }
 
@@ -221,16 +224,12 @@ void MainWindow::on_ros_check_box_clicked()
 void MainWindow::on_view_ros_settings_panel_triggered()
 {
     if (m_ui->ros_dock->isVisible())
-    {
-        m_ui->view_ros_settings_panel->setChecked(false);
-        m_ui->ros_dock->hide();
-    }
+        on_ros_dock_visibilityChanged(false);
     else
     {
         if (!m_ui->ros_check_box->isChecked())
             m_ui->ros_tab_widget->setEnabled(false);
-        m_ui->view_ros_settings_panel->setChecked(true);
-        m_ui->ros_dock->show();
+        on_ros_dock_visibilityChanged(true);
     }
 }
 
@@ -310,4 +309,20 @@ void MainWindow::on_ip_button_clicked()
         m_ui->ip_label->setText(tr("ROS IP:"));
     }
     m_use_ros_ip = !m_use_ros_ip;
+}
+
+void MainWindow::on_ros_dock_visibilityChanged(bool visible)
+{
+    if (visible)
+    {
+        m_ui->view_ros_settings_panel->setChecked(true);
+        m_ui->ros_dock->show();
+    }
+    else
+    {
+        if (!m_ui->ros_check_box->isChecked())
+            m_ui->ros_tab_widget->setEnabled(false);
+        m_ui->view_ros_settings_panel->setChecked(false);
+        m_ui->ros_dock->hide();
+    }
 }

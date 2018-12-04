@@ -43,6 +43,7 @@ private slots:
     void on_master_connect_button_clicked();
     void on_use_env_check_box_clicked(bool checked);
     void on_ip_button_clicked();
+    void on_ros_dock_visibilityChanged(bool visible);
 
 private:
     Ui::MainWindow *m_ui;
