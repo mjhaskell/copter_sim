@@ -120,6 +120,7 @@ void DroneNode::runNode()
     {
         auto t_start{std::chrono::high_resolution_clock::now()};
         this->updateDynamics();
+        emit statesChanged(&m_odom);
         while(std::chrono::duration<double,std::milli>(std::chrono::high_resolution_clock::now()-t_start).count() < m_rate) {}
     }
 }
@@ -147,8 +148,6 @@ void DroneNode::updateDynamics()
     m_odom.pose.pose.orientation.x = q.x();
     m_odom.pose.pose.orientation.y = q.y();
     m_odom.pose.pose.orientation.z = q.z();
-
-    emit statesChanged(&m_odom);
 }
 
 void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr &msg)
