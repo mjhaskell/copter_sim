@@ -15,7 +15,8 @@ DroneNode::DroneNode(int argc, char **argv) :
     m_argv{argv},
     m_use_ros{false},
     m_rate{m_drone.getDt()},
-    m_ros_is_connected{false}
+    m_ros_is_connected{false},
+    m_is_running{false}
 {
     m_odom.pose.pose.position.x = 0;
     m_odom.pose.pose.position.y = 0;
@@ -75,6 +76,7 @@ bool DroneNode::useRos() const
 
 void DroneNode::run()
 {
+    m_is_running = true;
     if (m_use_ros)
         this->runRosNode();
     else
@@ -93,6 +95,11 @@ bool DroneNode::startNode()
     return true;
 }
 
+void DroneNode::stopRunning()
+{
+    m_is_running = false;
+}
+
 void DroneNode::runRosNode()
 {
     ros::Rate publish_rate{500};
@@ -109,7 +116,7 @@ void DroneNode::runRosNode()
 
 void DroneNode::runNode()
 {
-    while (true)
+    while (m_is_running)
     {
         auto t_start{std::chrono::high_resolution_clock::now()};
         this->updateDynamics();

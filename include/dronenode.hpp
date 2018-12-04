@@ -22,6 +22,7 @@ public:
     bool useRos() const;
     void run();
     bool startNode();
+    void stopRunning();
 
 signals:
     void statesChanged(nav_msgs::Odometry* odom);
@@ -45,6 +46,7 @@ private:
     ros::Subscriber m_state_sub;
     ros::Publisher m_state_pub;
     bool m_ros_is_connected;
+    bool m_is_running;
 };
 
 } // end namespace quad
