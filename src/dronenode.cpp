@@ -4,7 +4,7 @@
 #include <string>
 #include "nav_msgs/Odometry.h"
 #include "rosflight_msgs/Command.h"
-#include "quat.hpp"
+#include "3rd_party/quat.hpp"
 #include <chrono>
 
 namespace quad
