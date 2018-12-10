@@ -25,9 +25,8 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     m_ui->ros_dock->hide();
     this->readSettings();
 
-    connect(&m_drone_node,&quad::DroneNode::statesChanged,
-            osg_widget, &OSGWidget::updateDroneStates);
-    connect(&m_drone_node,&quad::DroneNode::rosLostConnection,this,&MainWindow::closeWithWarning);
+    connect(&m_drone_node, &quad::DroneNode::statesChanged, osg_widget, &OSGWidget::updateDroneStates);
+    connect(&m_drone_node, &quad::DroneNode::rosLostConnection, this, &MainWindow::closeWithWarning);
 }
 
 MainWindow::~MainWindow()
