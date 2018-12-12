@@ -9,6 +9,7 @@ ControllerNode::ControllerNode() :
     m_is_running{false}
 {
     m_states.setZero(dyn::STATE_SIZE,1);
+    m_ref << 0,0,5, 0,0,0, 0,0,0, 0,0,0;
     m_cmds.setZero(dyn::INPUT_SIZE,1);
     m_odom.pose.pose.position.x = 0;
     m_odom.pose.pose.position.y = 0;
@@ -31,8 +32,10 @@ void ControllerNode::run()
     while (m_is_running)
     {
         auto t_start{std::chrono::high_resolution_clock::now()};
-        m_cmds = m_controller.calculateControl(m_states);
-        emit sendInputs(m_cmds);
+        m_controller.setX(m_states);
+        m_controller.setConstRef(m_ref);
+        m_cmds = m_controller.calculateControl();
+        emit sendInputs(&m_cmds);
         while(std::chrono::duration<double,std::milli>(std::chrono::high_resolution_clock::now()-t_start).count() < m_rate) {}
     }
 }
@@ -42,9 +45,14 @@ void ControllerNode::startNode()
     start();
 }
 
-void ControllerNode::updateStates(const dyn::xVec &states)
+void ControllerNode::stopRunning()
 {
-    m_states = states;
+    m_is_running = false;
+}
+
+void ControllerNode::updateStates(const dyn::xVec* states)
+{
+    m_states = *states;
 }
 
 } // end namespace quad

@@ -11,6 +11,8 @@ namespace Ui
 class MainWindow;
 }
 
+class OSGWidget;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -20,6 +22,7 @@ public:
     ~MainWindow();
 
 protected:
+    void setupSignalsAndSlots();
     void closeEvent(QCloseEvent *);
     void readSettings();
     void writeSettings();
@@ -30,7 +33,7 @@ protected:
     QAction* createStartAction();
     void startSimulation();
     QAction *createRoscoreAction();
-
+    
 public slots:
     void closeWithWarning();
 
@@ -47,7 +50,8 @@ private slots:
     void on_ros_dock_visibilityChanged(bool visible);
 
 private:
-    Ui::MainWindow *m_ui;
+    Ui::MainWindow *m_ui{nullptr};
+    OSGWidget *m_osg_widget{nullptr};
     int m_argc;
     char** m_argv;
     quad::ControllerNode m_controller_node;

@@ -17,7 +17,7 @@ public:
     virtual ~DroneNode();
     bool rosIsConnected() const;
     bool init();
-    bool init(const std::string &master_url,const std::string &host_url,bool use_ip=true);
+    bool init(const std::string& master_url,const std::string& host_url,bool use_ip=true);
     void setUseRos(const bool use_ros);
     bool useRos() const;
     void run();
@@ -25,19 +25,19 @@ public:
     void stopRunning();
 
 signals:
-    void feedbackStates(const dyn::xVec &states);
+    void feedbackStates(const dyn::xVec* states);
     void statesChanged(nav_msgs::Odometry* odom);
     void rosLostConnection();
 
 public slots:
-    void updateInputs(const dyn::uVec &inputs);
+    void updateInputs(const dyn::uVec* inputs);
 
 protected:
     void runRosNode();
     void runNode();
     void setupRosComms(const std::string topic="states");
     void updateDynamics();
-    void stateCallback(const nav_msgs::OdometryConstPtr &msg);
+    void stateCallback(const nav_msgs::OdometryConstPtr& msg);
 
 private:
     int m_argc;

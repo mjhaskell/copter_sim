@@ -1,8 +1,6 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "osgwidget.hpp"
-//#include "dronenode.hpp"
-//#include "controllernode.hpp"
 #include <ros/ros.h>
 #include <QToolBar>
 #include <QProcess>
@@ -11,30 +9,26 @@
 
 MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     QMainWindow(parent),
-    m_ui(new Ui::MainWindow),
+    m_ui{new Ui::MainWindow},
+    m_osg_widget{new OSGWidget},
     m_argc{argc},
     m_argv{argv},
     m_drone_node{m_argc,m_argv},
     m_process{new QProcess{this}}
 {
     m_ui->setupUi(this);
-
-    OSGWidget *osg_widget{new OSGWidget};
-    setCentralWidget(osg_widget);
+    setCentralWidget(m_osg_widget);
     this->createToolbar();
     this->setupStatusBar();
     m_ui->ros_dock->hide();
     this->readSettings();
-
-    connect(&m_drone_node, &quad::DroneNode::feedbackStates, &m_controller_node, &quad::ControllerNode::updateStates);
-    connect(&m_controller_node, &quad::ControllerNode::sendInputs, &m_drone_node, &quad::DroneNode::updateInputs);
-    connect(&m_drone_node, &quad::DroneNode::statesChanged, osg_widget, &OSGWidget::updateDroneStates);
-    connect(&m_drone_node, &quad::DroneNode::rosLostConnection, this, &MainWindow::closeWithWarning);
+    this->setupSignalsAndSlots();
 }
 
 MainWindow::~MainWindow()
 {
     delete m_ui;
+    delete m_osg_widget;
     if (m_app_started_roscore)
     {
         m_process->close();
@@ -50,9 +44,18 @@ MainWindow::~MainWindow()
     }
 }
 
+void MainWindow::setupSignalsAndSlots()
+{
+    connect(&m_drone_node, &quad::DroneNode::feedbackStates, &m_controller_node, &quad::ControllerNode::updateStates);
+    connect(&m_controller_node, &quad::ControllerNode::sendInputs, &m_drone_node, &quad::DroneNode::updateInputs);
+    connect(&m_drone_node, &quad::DroneNode::statesChanged, m_osg_widget, &OSGWidget::updateDroneStates);
+    connect(&m_drone_node, &quad::DroneNode::rosLostConnection, this, &MainWindow::closeWithWarning);
+}
+
 void MainWindow::closeEvent(QCloseEvent *event)
 {
     m_drone_node.stopRunning();
+    m_controller_node.stopRunning();
     this->writeSettings();
     QMainWindow::closeEvent(event);
 }
@@ -152,7 +155,7 @@ QAction* MainWindow::createStartAction()
 void MainWindow::startSimulation()
 {
     if (!m_ui->ros_check_box->isChecked())
-//        m_controller_node.startNode();
+        m_controller_node.startNode();
     if (!m_drone_node.startNode())
     {
         if (m_drone_node.rosIsConnected())
@@ -181,6 +184,7 @@ void MainWindow::on_start_triggered()
 void MainWindow::on_close_triggered()
 {
     m_drone_node.stopRunning();
+    m_controller_node.stopRunning();
     this->writeSettings();
     close();
 }

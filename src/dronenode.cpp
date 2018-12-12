@@ -10,7 +10,7 @@
 namespace quad
 {
 
-DroneNode::DroneNode(int argc, char **argv) :
+DroneNode::DroneNode(int argc, char** argv) :
     m_argc{argc},
     m_argv{argv},
     m_use_ros{false},
@@ -52,7 +52,7 @@ bool DroneNode::init()
     return m_ros_is_connected = true;
 }
 
-bool DroneNode::init(const std::string &master_url, const std::string &host_url,bool use_ip)
+bool DroneNode::init(const std::string& master_url, const std::string& host_url,bool use_ip)
 {
     std::map<std::string,std::string> remappings;
     remappings["__master"] = master_url;
@@ -102,9 +102,9 @@ void DroneNode::stopRunning()
     m_is_running = false;
 }
 
-void DroneNode::updateInputs(const dyn::uVec &inputs)
+void DroneNode::updateInputs(const dyn::uVec* inputs)
 {
-    m_inputs = inputs;
+    m_inputs = *inputs;
 }
 
 void DroneNode::runRosNode()
@@ -127,7 +127,7 @@ void DroneNode::runNode()
     {
         auto t_start{std::chrono::high_resolution_clock::now()};
         this->updateDynamics();
-        emit feedbackStates(m_states);
+        emit feedbackStates(&m_states);
         emit statesChanged(&m_odom);
         while(std::chrono::duration<double,std::milli>(std::chrono::high_resolution_clock::now()-t_start).count() < m_rate) {}
     }
@@ -158,7 +158,7 @@ void DroneNode::updateDynamics()
     m_odom.pose.pose.orientation.z = q.z();
 }
 
-void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr &msg)
+void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr& msg)
 {
     m_odom.pose.pose.position.x = msg->pose.pose.position.x;
     m_odom.pose.pose.position.y = msg->pose.pose.position.y;

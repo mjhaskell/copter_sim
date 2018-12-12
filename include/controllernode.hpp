@@ -17,16 +17,18 @@ public:
 //    void init();
     void run();
     void startNode();
+    void stopRunning();
 
 signals:
-    void sendInputs(const dyn::uVec &inputs);
+    void sendInputs(const dyn::uVec* inputs);
 
 public slots:
-    void updateStates(const dyn::xVec &states);
+    void updateStates(const dyn::xVec* states);
 
 private:
     dyn::Controller m_controller;
     dyn::xVec m_states;
+    dyn::xVec m_ref;
     nav_msgs::Odometry m_odom;
     dyn::uVec m_cmds;
     double m_rate;
