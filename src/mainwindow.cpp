@@ -1,7 +1,8 @@
 #include "mainwindow.hpp"
 #include "ui_mainwindow.h"
 #include "osgwidget.hpp"
-#include "dronenode.hpp"
+//#include "dronenode.hpp"
+//#include "controllernode.hpp"
 #include <ros/ros.h>
 #include <QToolBar>
 #include <QProcess>
@@ -25,6 +26,8 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     m_ui->ros_dock->hide();
     this->readSettings();
 
+    connect(&m_drone_node, &quad::DroneNode::feedbackStates, &m_controller_node, &quad::ControllerNode::updateStates);
+    connect(&m_controller_node, &quad::ControllerNode::sendInputs, &m_drone_node, &quad::DroneNode::updateInputs);
     connect(&m_drone_node, &quad::DroneNode::statesChanged, osg_widget, &OSGWidget::updateDroneStates);
     connect(&m_drone_node, &quad::DroneNode::rosLostConnection, this, &MainWindow::closeWithWarning);
 }
@@ -148,6 +151,8 @@ QAction* MainWindow::createStartAction()
 
 void MainWindow::startSimulation()
 {
+    if (!m_ui->ros_check_box->isChecked())
+//        m_controller_node.startNode();
     if (!m_drone_node.startNode())
     {
         if (m_drone_node.rosIsConnected())

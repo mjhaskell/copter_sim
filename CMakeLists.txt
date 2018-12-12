@@ -49,6 +49,8 @@ set(MYSOURCE
     src/droneupdatecallback.cpp
     src/dronenode.cpp
     include/dronenode.hpp
+    src/controllernode.cpp
+    include/controllernode.hpp
     )
 
 set(MYRESOURCES icons/icons.qrc)

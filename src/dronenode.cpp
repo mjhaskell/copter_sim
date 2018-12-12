@@ -18,6 +18,8 @@ DroneNode::DroneNode(int argc, char **argv) :
     m_ros_is_connected{false},
     m_is_running{false}
 {
+    m_inputs = m_drone.getEquilibriumInputs();
+    m_states = m_drone.getStates();
     m_odom.pose.pose.position.x = 0;
     m_odom.pose.pose.position.y = 0;
     m_odom.pose.pose.position.z = 0;
@@ -100,6 +102,11 @@ void DroneNode::stopRunning()
     m_is_running = false;
 }
 
+void DroneNode::updateInputs(const dyn::uVec &inputs)
+{
+    m_inputs = inputs;
+}
+
 void DroneNode::runRosNode()
 {
     ros::Rate publish_rate{500};
@@ -120,6 +127,7 @@ void DroneNode::runNode()
     {
         auto t_start{std::chrono::high_resolution_clock::now()};
         this->updateDynamics();
+        emit feedbackStates(m_states);
         emit statesChanged(&m_odom);
         while(std::chrono::duration<double,std::milli>(std::chrono::high_resolution_clock::now()-t_start).count() < m_rate) {}
     }
@@ -136,14 +144,14 @@ void DroneNode::setupRosComms(const std::string topic)
 
 void DroneNode::updateDynamics()
 {
-    dyn::uVec u;
-    u << 0.55,0.56,0.55,0.56;
-    m_drone.sendMotorCmds(u);
-    dyn::xVec x{m_drone.getStates()};
-    m_odom.pose.pose.position.x = x(dyn::PX);
-    m_odom.pose.pose.position.y = x(dyn::PY);
-    m_odom.pose.pose.position.z = x(dyn::PZ);
-    quat::Quatd q{quat::Quatd::from_euler(x(dyn::RX),x(dyn::RY),x(dyn::RZ))};
+//    dyn::uVec u;
+//    u << 0.55,0.56,0.55,0.56;
+    m_drone.sendMotorCmds(m_inputs);
+    m_states = m_drone.getStates();
+    m_odom.pose.pose.position.x = m_states(dyn::PX);
+    m_odom.pose.pose.position.y = m_states(dyn::PY);
+    m_odom.pose.pose.position.z = m_states(dyn::PZ);
+    quat::Quatd q{quat::Quatd::from_euler(m_states(dyn::RX),m_states(dyn::RY),m_states(dyn::RZ))};
     m_odom.pose.pose.orientation.w = q.w();
     m_odom.pose.pose.orientation.x = q.x();
     m_odom.pose.pose.orientation.y = q.y();
@@ -160,6 +168,7 @@ void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr &msg)
     m_odom.pose.pose.orientation.y = msg->pose.pose.orientation.y;
     m_odom.pose.pose.orientation.z = msg->pose.pose.orientation.z;
 
+//    emit feedbackStates(&m_states);
     emit statesChanged(&m_odom);
 }
 

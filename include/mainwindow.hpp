@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "dronenode.hpp"
+#include "controllernode.hpp"
 #include <QProcess>
 
 namespace Ui
@@ -49,6 +50,7 @@ private:
     Ui::MainWindow *m_ui;
     int m_argc;
     char** m_argv;
+    quad::ControllerNode m_controller_node;
     quad::DroneNode m_drone_node;
     QToolBar *m_main_toolbar{nullptr};
     QProcess *m_process{nullptr};

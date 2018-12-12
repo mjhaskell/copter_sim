@@ -25,8 +25,12 @@ public:
     void stopRunning();
 
 signals:
+    void feedbackStates(const dyn::xVec &states);
     void statesChanged(nav_msgs::Odometry* odom);
     void rosLostConnection();
+
+public slots:
+    void updateInputs(const dyn::uVec &inputs);
 
 protected:
     void runRosNode();
@@ -42,6 +46,8 @@ private:
     std::string m_node_name{"drone_node"};
     dyn::Drone m_drone;
     double m_rate;
+    dyn::uVec m_inputs;
+    dyn::xVec m_states;
     nav_msgs::Odometry m_odom;
     ros::Subscriber m_state_sub;
     ros::Publisher m_state_pub;
