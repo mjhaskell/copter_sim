@@ -9,7 +9,7 @@ ControllerNode::ControllerNode() :
     m_is_running{false}
 {
     m_states.setZero(dyn::STATE_SIZE,1);
-    m_ref << 0,0,5, 0,0,0, 0,0,0, 0,0,0;
+    m_ref << -15,15,5, 0,0,0, 0,0,0, 0,0,0;
     m_cmds.setZero(dyn::INPUT_SIZE,1);
     m_odom.pose.pose.position.x = 0;
     m_odom.pose.pose.position.y = 0;

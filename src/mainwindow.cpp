@@ -419,7 +419,7 @@ void MainWindow::populateTopicsComboBox()
     QString str{QString::fromUtf8(topics.c_str())};
     QStringList list{str.split(",")};
     m_ui->topics_combo_box->addItems(list);
-    //    m_ui->topics_combo_box->removeItem(m_ui->topics_combo_box->count()-1);
+        m_ui->topics_combo_box->removeItem(m_ui->topics_combo_box->count()-1);
 }
 
 void MainWindow::on_scan_button_clicked()
