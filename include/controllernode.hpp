@@ -14,7 +14,6 @@ class ControllerNode : public QThread
 public:
     ControllerNode();
     virtual ~ControllerNode();
-//    void init();
     void run();
     void startNode();
     void stopRunning();

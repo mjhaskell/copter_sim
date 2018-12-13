@@ -3,7 +3,6 @@
 #include <ros/ros.h>
 #include <string>
 #include "nav_msgs/Odometry.h"
-#include "rosflight_msgs/Command.h"
 #include "3rd_party/quat.hpp"
 #include <chrono>
 
@@ -20,13 +19,7 @@ DroneNode::DroneNode(int argc, char** argv) :
 {
     m_inputs = m_drone.getEquilibriumInputs();
     m_states = m_drone.getStates();
-    m_odom.pose.pose.position.x = 0;
-    m_odom.pose.pose.position.y = 0;
-    m_odom.pose.pose.position.z = 0;
-    m_odom.pose.pose.orientation.w = 1;
-    m_odom.pose.pose.orientation.x = 0;
-    m_odom.pose.pose.orientation.y = 0;
-    m_odom.pose.pose.orientation.z = 0;    
+    this->resetOdometry();
 }
 
 DroneNode::~DroneNode()
@@ -49,6 +42,8 @@ bool DroneNode::init()
     ros::init(m_argc,m_argv,m_node_name);
     if (!ros::master::check())
         return false;
+    if (m_use_ros)
+        this->setupRosComms();
     return m_ros_is_connected = true;
 }
 
@@ -63,6 +58,8 @@ bool DroneNode::init(const std::string& master_url, const std::string& host_url,
     ros::init(remappings,m_node_name);
     if (!ros::master::check())
         return false;
+    if (m_use_ros)
+        this->setupRosComms();
     return m_ros_is_connected = true;
 }
 
@@ -91,7 +88,6 @@ bool DroneNode::startNode()
     {
         if (!ros::master::check())
             return false;
-        this->setupRosComms();
     }
     start();
     return true;
@@ -100,6 +96,26 @@ bool DroneNode::startNode()
 void DroneNode::stopRunning()
 {
     m_is_running = false;
+    m_drone.resetStates();
+    m_states = m_drone.getStates();
+    m_inputs = m_drone.getEquilibriumInputs();
+    this->resetOdometry();
+    emit statesChanged(&m_odom);
+}
+
+std::string DroneNode::getOdometryTopics()
+{
+    ros::master::V_TopicInfo master_topics;
+    ros::master::getTopics(master_topics);
+    std::stringstream topics;
+
+    for (ros::master::V_TopicInfo::iterator it = master_topics.begin();it != master_topics.end();it++)
+    {
+        const ros::master::TopicInfo &info{*it};
+        if (info.datatype == "nav_msgs/Odometry")
+            topics << info.name << ",";
+    }
+    return topics.str();
 }
 
 void DroneNode::updateInputs(const dyn::uVec* inputs)
@@ -110,15 +126,18 @@ void DroneNode::updateInputs(const dyn::uVec* inputs)
 void DroneNode::runRosNode()
 {
     ros::Rate publish_rate{500};
-    while (ros::ok() && ros::master::check())
+    while (ros::ok() && ros::master::check() && m_is_running)
     {
         this->updateDynamics();
         m_state_pub.publish(m_odom);
         ros::spinOnce();
         publish_rate.sleep();
     }
-    m_ros_is_connected = false;
-    emit rosLostConnection();
+    if (m_is_running)
+    {
+        m_ros_is_connected = false;
+        emit rosLostConnection();
+    }
 }
 
 void DroneNode::runNode()
@@ -139,13 +158,11 @@ void DroneNode::setupRosComms(const std::string topic)
     ros::NodeHandle nh;
     int states_queue_size{50};
     m_state_sub = nh.subscribe(topic, states_queue_size, &DroneNode::stateCallback, this);
-    m_state_pub = nh.advertise<nav_msgs::Odometry>("states", states_queue_size);
+    m_state_pub = nh.advertise<nav_msgs::Odometry>("sim_states", states_queue_size);
 }
 
 void DroneNode::updateDynamics()
 {
-//    dyn::uVec u;
-//    u << 0.55,0.56,0.55,0.56;
     m_drone.sendMotorCmds(m_inputs);
     m_states = m_drone.getStates();
     m_odom.pose.pose.position.x = m_states(dyn::PX);
@@ -168,8 +185,19 @@ void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr& msg)
     m_odom.pose.pose.orientation.y = msg->pose.pose.orientation.y;
     m_odom.pose.pose.orientation.z = msg->pose.pose.orientation.z;
 
-//    emit feedbackStates(&m_states);
+    emit feedbackStates(&m_states);
     emit statesChanged(&m_odom);
+}
+
+void DroneNode::resetOdometry()
+{
+    m_odom.pose.pose.position.x = 0;
+    m_odom.pose.pose.position.y = 0;
+    m_odom.pose.pose.position.z = 0;
+    m_odom.pose.pose.orientation.w = 1;
+    m_odom.pose.pose.orientation.x = 0;
+    m_odom.pose.pose.orientation.y = 0;
+    m_odom.pose.pose.orientation.z = 0;
 }
 
 } // end namespace quad

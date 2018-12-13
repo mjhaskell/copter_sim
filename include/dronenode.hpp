@@ -23,6 +23,8 @@ public:
     void run();
     bool startNode();
     void stopRunning();
+    std::string getOdometryTopics();
+    void setupRosComms(const std::string topic="sim_states");
 
 signals:
     void feedbackStates(const dyn::xVec* states);
@@ -35,9 +37,10 @@ public slots:
 protected:
     void runRosNode();
     void runNode();
-    void setupRosComms(const std::string topic="states");
+//    void setupRosComms(const std::string topic="sim_states");
     void updateDynamics();
     void stateCallback(const nav_msgs::OdometryConstPtr& msg);
+    void resetOdometry();
 
 private:
     int m_argc;

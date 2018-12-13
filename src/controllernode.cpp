@@ -48,6 +48,9 @@ void ControllerNode::startNode()
 void ControllerNode::stopRunning()
 {
     m_is_running = false;
+    m_states.setZero(dyn::STATE_SIZE,1);
+    m_cmds = m_controller.getEquilibriumInputs();
+    emit sendInputs(&m_cmds);
 }
 
 void ControllerNode::updateStates(const dyn::xVec* states)

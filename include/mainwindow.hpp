@@ -31,9 +31,15 @@ protected:
     void createToolbar();
     void setupStatusBar();
     QAction* createStartAction();
-    void startSimulation();
-    QAction *createRoscoreAction();
+    void startOrResetSim();
+    bool startSimulation();
+    void resetSimulation();
+    void disableOtherConnectionOptions();
+    void onSuccessfulMasterConnection();
+    QAction *createRosPanelAction();
     
+    void populateTopicsComboBox();
+
 public slots:
     void closeWithWarning();
 
@@ -48,6 +54,12 @@ private slots:
     void on_use_env_check_box_clicked(bool checked);
     void on_ip_button_clicked();
     void on_ros_dock_visibilityChanged(bool visible);
+    void on_tool_bar_visibilityChanged(bool visible);
+    void on_scan_button_clicked();
+    void on_subscribe_button_clicked();
+    void on_reset_triggered();
+
+    void on_view_main_toolbar_triggered();
 
 private:
     Ui::MainWindow *m_ui{nullptr};
@@ -62,6 +74,7 @@ private:
     QIcon m_check_icon{QIcon{":myicons/check.png"}};
     QIcon m_x_icon{QIcon{":myicons/red_x.jpg"}};
     bool m_use_ros_ip{true};
+    bool m_is_running{false};
 };
 
 #endif // MAINWINDOW_HPP

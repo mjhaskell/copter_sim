@@ -20,7 +20,7 @@
    <string>CopterSim</string>
   </property>
   <property name="windowIcon">
-   <iconset>
+   <iconset resource="../icons/icons.qrc">
     <normaloff>:/myicons/drone.png</normaloff>:/myicons/drone.png</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
@@ -65,6 +65,7 @@
      <string>File</string>
     </property>
     <addaction name="start"/>
+    <addaction name="reset"/>
     <addaction name="separator"/>
     <addaction name="close"/>
    </widget>
@@ -74,6 +75,8 @@
     </property>
     <addaction name="view_ros_settings_panel"/>
     <addaction name="view_ros_connection_status"/>
+    <addaction name="separator"/>
+    <addaction name="view_main_toolbar"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -134,7 +137,7 @@
          <item row="1" column="0">
           <widget class="QGroupBox" name="master_group">
            <property name="title">
-            <string>Connect to ROS master</string>
+            <string>Connect to ROS Master</string>
            </property>
            <layout class="QGridLayout" name="gridLayout">
             <item row="1" column="0" colspan="2">
@@ -262,6 +265,103 @@
         <attribute name="title">
          <string>Topic</string>
         </attribute>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="0" column="1">
+          <widget class="QGroupBox" name="topics_group">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="title">
+            <string>Subscribe to Topic</string>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_5">
+            <item row="6" column="0" colspan="2">
+             <spacer name="verticalSpacer_2">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="4" column="0" colspan="2">
+             <widget class="QLabel" name="label_4">
+              <property name="text">
+               <string>Topic doesn't appear?</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0" colspan="2">
+             <widget class="Line" name="line">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0" colspan="2">
+             <widget class="QLabel" name="label_3">
+              <property name="text">
+               <string>Odometry Topics on Master:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="subscribe_button">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Subscribe to the selected topic</string>
+              </property>
+              <property name="text">
+               <string>Subscribe</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QComboBox" name="topics_combo_box">
+              <property name="toolTip">
+               <string>List of all Odometry topics</string>
+              </property>
+              <property name="statusTip">
+               <string>List  of all Odometry topics published on ROS master</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item row="5" column="0" colspan="2">
+             <widget class="QPushButton" name="scan_button">
+              <property name="enabled">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Scan for topics and populate list above</string>
+              </property>
+              <property name="text">
+               <string>Scan for Topics</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
        </widget>
       </widget>
      </item>
@@ -353,7 +453,25 @@
     <string>ROS Connection Status</string>
    </property>
   </action>
+  <action name="reset">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Reset</string>
+   </property>
+  </action>
+  <action name="view_main_toolbar">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Main Toolbar</string>
+   </property>
+  </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../icons/icons.qrc"/>
+ </resources>
  <connections/>
 </ui>
