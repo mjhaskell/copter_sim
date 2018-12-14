@@ -45,12 +45,16 @@ void ControllerNode::startNode()
     start();
 }
 
-void ControllerNode::stopRunning()
+void ControllerNode::resetNode()
 {
-    m_is_running = false;
     m_states.setZero(dyn::STATE_SIZE,1);
     m_cmds = m_controller.getEquilibriumInputs();
     emit sendInputs(&m_cmds);
+}
+
+void ControllerNode::stopRunning()
+{
+    m_is_running = false;
 }
 
 void ControllerNode::setRefCmd(const Eigen::Vector4d &ref)

@@ -16,6 +16,7 @@ public:
     virtual ~ControllerNode();
     void run();
     void startNode();
+    void resetNode();
     void stopRunning();
     void setRefCmd(const Eigen::Vector4d& ref);
     void setWeights(const dyn::xVec& state_weights,const dyn::uVec& input_weights);

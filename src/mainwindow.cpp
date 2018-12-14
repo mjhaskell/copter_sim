@@ -130,6 +130,8 @@ void MainWindow::createToolbar()
     QToolBar *tool_bar{addToolBar(tr("Main Toolbar"))};
     QAction *start_action{createStartAction()};
     tool_bar->addAction(start_action);
+    QAction *reset_action{createResetAction()};
+    tool_bar->addAction(reset_action);
     QAction *ros_panel_action{createRosPanelAction()};
     tool_bar->addAction(ros_panel_action);
     QAction *controller_panel_action{createControllerPanelAction()};
@@ -152,22 +154,33 @@ QAction* MainWindow::createStartAction()
     const QIcon start_icon{QIcon{":myicons/start.png"}};
     QAction *start_action{new QAction(start_icon, tr("Run Simulation (Ctrl+R)"), this)};
     start_action->setShortcut(QKeySequence{tr("Ctrl+R")});
-    start_action->setStatusTip(tr("Run Simulation"));
-    connect(start_action, &QAction::triggered, this, &MainWindow::startOrResetSim);
+    start_action->setStatusTip(tr("Run the simulation"));
+    connect(start_action, &QAction::triggered, this, &MainWindow::startOrPauseSim);
 
     return start_action;
 }
 
-void MainWindow::startOrResetSim()
+QAction *MainWindow::createResetAction()
+{
+    const QIcon reset_icon{QIcon{":myicons/start.png"}};
+    QAction *reset_action{new QAction(reset_icon, tr("Reset Simulation (Ctrl+U)"), this)};
+    reset_action->setShortcut(QKeySequence{tr("Ctrl+U")});
+    reset_action->setStatusTip(tr("Reset the simulation"));
+    connect(reset_action, &QAction::triggered, this, &MainWindow::resetSimulation);
+
+    return reset_action;
+}
+
+void MainWindow::startOrPauseSim()
 {
     if (!m_is_running)
     {
         if (startSimulation())
         {
             m_is_running = true;
-            m_main_toolbar->actions().first()->setIcon(QIcon{":myicons/reset.png"});
-            m_main_toolbar->actions().first()->setToolTip(tr("Reset Simulation (Ctrl+R)"));
-            m_main_toolbar->actions().first()->setStatusTip(tr("Reset Simulation"));
+            m_main_toolbar->actions().first()->setIcon(QIcon{":myicons/pause.png"});
+            m_main_toolbar->actions().first()->setToolTip(tr("Pause Simulation (Ctrl+R)"));
+            m_main_toolbar->actions().first()->setStatusTip(tr("Pause the simulation"));
             m_ui->ros_check_box->setEnabled(false);
             m_ui->start->setEnabled(false);
             m_ui->reset->setEnabled(true);
@@ -179,7 +192,7 @@ void MainWindow::startOrResetSim()
     else
     {
         m_is_running = false;
-        resetSimulation();
+        pauseSimulation();
         m_main_toolbar->actions().first()->setIcon(QIcon{":myicons/start.png"});
         m_main_toolbar->actions().first()->setToolTip(tr("Run Simulation (Ctrl+R)"));
         m_main_toolbar->actions().first()->setStatusTip(tr("Run Simulation"));
@@ -208,10 +221,18 @@ bool MainWindow::startSimulation()
     return true;
 }
 
-void MainWindow::resetSimulation()
+void MainWindow::pauseSimulation()
 {
     m_drone_node.stopRunning();
     m_controller_node.stopRunning();
+}
+
+void MainWindow::resetSimulation()
+{
+    m_drone_node.stopRunning();
+    m_drone_node.resetNode();
+    m_controller_node.stopRunning();
+    m_controller_node.resetNode();
     m_osg_widget->resetManipulatorView();
 }
 
@@ -239,7 +260,7 @@ QAction *MainWindow::createControllerPanelAction()
 
 void MainWindow::on_start_triggered()
 {
-    this->startOrResetSim();
+    this->startOrPauseSim();
 }
 
 void MainWindow::on_close_triggered()
@@ -481,7 +502,7 @@ void MainWindow::on_subscribe_button_clicked()
 
 void MainWindow::on_reset_triggered()
 {
-    startOrResetSim();
+    resetSimulation();
 }
 
 void MainWindow::on_view_main_toolbar_triggered()

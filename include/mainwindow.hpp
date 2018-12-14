@@ -31,8 +31,10 @@ protected:
     void createToolbar();
     void setupStatusBar();
     QAction* createStartAction();
-    void startOrResetSim();
+    QAction* createResetAction();
+    void startOrPauseSim();
     bool startSimulation();
+    void pauseSimulation();
     void resetSimulation();
     void disableOtherConnectionOptions();
     void onSuccessfulMasterConnection();

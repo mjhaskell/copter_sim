@@ -96,6 +96,10 @@ bool DroneNode::startNode()
 void DroneNode::stopRunning()
 {
     m_is_running = false;
+}
+
+void DroneNode::resetNode()
+{
     m_drone.resetStates();
     m_states = m_drone.getStates();
     m_inputs = m_drone.getEquilibriumInputs();
@@ -128,10 +132,10 @@ void DroneNode::runRosNode()
     ros::Rate publish_rate{500};
     while (ros::ok() && ros::master::check() && m_is_running)
     {
-        this->updateDynamics();
-        m_state_pub.publish(m_odom);
-        ros::spinOnce();
-        publish_rate.sleep();
+//        this->updateDynamics();
+//        m_state_pub.publish(m_odom);
+//        ros::spinOnce();
+//        publish_rate.sleep();
     }
     if (m_is_running)
     {
@@ -185,7 +189,7 @@ void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr& msg)
     m_odom.pose.pose.orientation.y = msg->pose.pose.orientation.y;
     m_odom.pose.pose.orientation.z = msg->pose.pose.orientation.z;
 
-    emit feedbackStates(&m_states);
+//    emit feedbackStates(&m_states);
     emit statesChanged(&m_odom);
 }
 
