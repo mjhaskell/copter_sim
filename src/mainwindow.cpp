@@ -21,6 +21,7 @@ MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     this->createToolbar();
     this->setupStatusBar();
     m_ui->ros_dock->hide();
+    m_ui->controller_dock->hide();
     m_ui->topics_group->setEnabled(false);
     this->readSettings();
     this->setupSignalsAndSlots();
@@ -48,7 +49,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::setupSignalsAndSlots()
 {
-    connect(m_main_toolbar, &QToolBar::visibilityChanged, this, &MainWindow::on_tool_bar_visibilityChanged);
+    connect(m_main_toolbar, &QToolBar::visibilityChanged, this, &MainWindow::onToolbarVisibilityChanged);
     connect(&m_drone_node, &quad::DroneNode::feedbackStates, &m_controller_node, &quad::ControllerNode::updateStates);
     connect(&m_controller_node, &quad::ControllerNode::sendInputs, &m_drone_node, &quad::DroneNode::updateInputs);
     connect(&m_drone_node, &quad::DroneNode::statesChanged, m_osg_widget, &OSGWidget::updateDroneStates);
@@ -131,6 +132,8 @@ void MainWindow::createToolbar()
     tool_bar->addAction(start_action);
     QAction *ros_panel_action{createRosPanelAction()};
     tool_bar->addAction(ros_panel_action);
+    QAction *controller_panel_action{createControllerPanelAction()};
+    tool_bar->addAction(controller_panel_action);
 
     m_main_toolbar = tool_bar;
 }
@@ -209,6 +212,7 @@ void MainWindow::resetSimulation()
 {
     m_drone_node.stopRunning();
     m_controller_node.stopRunning();
+    m_osg_widget->resetManipulatorView();
 }
 
 QAction* MainWindow::createRosPanelAction()
@@ -220,6 +224,17 @@ QAction* MainWindow::createRosPanelAction()
     connect(ros_panel_action, &QAction::triggered, this, &MainWindow::on_view_ros_settings_panel_triggered);
 
     return ros_panel_action;
+}
+
+QAction *MainWindow::createControllerPanelAction()
+{
+    const QIcon controller_icon{QIcon(":myicons/controller.png")};
+    QAction *controller_action{new QAction(controller_icon, tr("&View controller panel"), this)};
+    controller_action->setStatusTip(tr("Toggle view of controller panel"));
+    controller_action->setCheckable(true);
+    connect(controller_action, &QAction::triggered, this, &MainWindow::on_view_controller_panel_triggered);
+
+    return controller_action;
 }
 
 void MainWindow::on_start_triggered()
@@ -285,6 +300,16 @@ void MainWindow::on_view_ros_settings_panel_triggered()
         if (!m_ui->ros_check_box->isChecked())
             m_ui->ros_tab_widget->setEnabled(false);
         on_ros_dock_visibilityChanged(true);
+    }
+}
+
+void MainWindow::on_view_controller_panel_triggered()
+{
+    if (m_ui->controller_dock->isVisible())
+        on_controller_dock_visibilityChanged(false);
+    else
+    {
+        on_controller_dock_visibilityChanged(true);
     }
 }
 
@@ -398,7 +423,23 @@ void MainWindow::on_ros_dock_visibilityChanged(bool visible)
     }
 }
 
-void MainWindow::on_tool_bar_visibilityChanged(bool visible)
+void MainWindow::on_controller_dock_visibilityChanged(bool visible)
+{
+    if (visible)
+    {
+        m_ui->view_controller_panel->setChecked(true);
+        m_ui->controller_dock->show();
+        m_main_toolbar->actions().at(2)->setChecked(true);
+    }
+    else
+    {
+        m_ui->view_controller_panel->setChecked(false);
+        m_ui->controller_dock->hide();
+        m_main_toolbar->actions().at(2)->setChecked(false);
+    }
+}
+
+void MainWindow::onToolbarVisibilityChanged(bool visible)
 {
     if (visible)
     {
@@ -446,7 +487,34 @@ void MainWindow::on_reset_triggered()
 void MainWindow::on_view_main_toolbar_triggered()
 {
     if (m_main_toolbar->isVisible())
-        on_tool_bar_visibilityChanged(false);
+        onToolbarVisibilityChanged(false);
     else
-        on_tool_bar_visibilityChanged(true);
+        onToolbarVisibilityChanged(true);
+}
+
+void MainWindow::on_set_waypoint_button_clicked()
+{
+    double north{m_ui->north_spin->value()};
+    double east{m_ui->east_spin->value()};
+    double height{m_ui->height_spin->value()};
+    double yaw_radians{osg::DegreesToRadians(m_ui->yaw_spin->value())};
+    Eigen::Vector4d ref_cmd{north,east,height,yaw_radians};
+    m_controller_node.setRefCmd(ref_cmd);
+}
+
+void MainWindow::on_set_weights_button_clicked()
+{
+    dyn::xVec state_weights;
+    state_weights << m_ui->px_spin->value(),m_ui->py_spin->value(),m_ui->pz_spin->value(),
+                     m_ui->rx_spin->value(),m_ui->ry_spin->value(),m_ui->rz_spin->value(),
+                     m_ui->vx_spin->value(),m_ui->vy_spin->value(),m_ui->vz_spin->value(),
+                     m_ui->wx_spin->value(),m_ui->wy_spin->value(),m_ui->wz_spin->value();
+    dyn::uVec input_weights;
+    input_weights = input_weights.setOnes(dyn::INPUT_SIZE,1)*m_ui->u_weights_spin->value();
+    m_controller_node.setWeights(state_weights,input_weights);
+}
+
+void MainWindow::on_set_rates_button_clicked()
+{
+    m_controller_node.setRates(m_ui->ts_spin->value(),m_ui->slew_spin->value());
 }

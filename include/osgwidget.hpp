@@ -18,6 +18,7 @@ class OSGWidget : public QOpenGLWidget
 public:
   OSGWidget(QWidget* parent = 0,Qt::WindowFlags f = 0);
   virtual ~OSGWidget();
+  void resetManipulatorView();
 
 public slots:
   void updateDroneStates(nav_msgs::Odometry* odom);

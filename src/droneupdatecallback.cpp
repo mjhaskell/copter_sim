@@ -35,6 +35,15 @@ void DroneUpdateCallback::updateManipulator()
     m_manipulator->setTransformation(m_eye,m_center,m_up);
 }
 
+void DroneUpdateCallback::resetManipulator()
+{
+    m_q_i2c.set(0,0,0,1.0);
+    m_pos.set(0,0,0);
+    m_att.set(0,0,0,1.0);
+    m_center.set(0,0,0);
+    m_manipulator->setTransformation(m_eye,m_center,m_up);
+}
+
 void DroneUpdateCallback::operator()(osg::Node *node, osg::NodeVisitor *nv)
 {
     osg::PositionAttitudeTransform *pat{dynamic_cast<osg::PositionAttitudeTransform*>(node)};

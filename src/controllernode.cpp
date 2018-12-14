@@ -9,7 +9,7 @@ ControllerNode::ControllerNode() :
     m_is_running{false}
 {
     m_states.setZero(dyn::STATE_SIZE,1);
-    m_ref << -15,15,5, 0,0,0, 0,0,0, 0,0,0;
+    m_ref << 0,0,3, 0,0,0, 0,0,0, 0,0,0;
     m_cmds.setZero(dyn::INPUT_SIZE,1);
     m_odom.pose.pose.position.x = 0;
     m_odom.pose.pose.position.y = 0;
@@ -51,6 +51,24 @@ void ControllerNode::stopRunning()
     m_states.setZero(dyn::STATE_SIZE,1);
     m_cmds = m_controller.getEquilibriumInputs();
     emit sendInputs(&m_cmds);
+}
+
+void ControllerNode::setRefCmd(const Eigen::Vector4d &ref)
+{
+    m_ref.block(dyn::PX,0,3,1) = ref.segment<3>(dyn::PX);
+    m_ref(dyn::RZ,0) = ref(3);
+}
+
+void ControllerNode::setWeights(const dyn::xVec &state_weights, const dyn::uVec &input_weights)
+{
+    m_controller.setStateWeights(state_weights);
+    m_controller.setInputWeights(input_weights);
+}
+
+void ControllerNode::setRates(double ts, double slew)
+{
+    m_controller.setControlRate(ts);
+    m_controller.setSlewRate(slew);
 }
 
 void ControllerNode::updateStates(const dyn::xVec* states)

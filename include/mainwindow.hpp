@@ -36,9 +36,10 @@ protected:
     void resetSimulation();
     void disableOtherConnectionOptions();
     void onSuccessfulMasterConnection();
-    QAction *createRosPanelAction();
-    
+    QAction* createRosPanelAction();
+    QAction* createControllerPanelAction();
     void populateTopicsComboBox();
+    void onToolbarVisibilityChanged(bool visible);
 
 public slots:
     void closeWithWarning();
@@ -49,17 +50,20 @@ private slots:
     void on_roscore_button_clicked();
     void on_ros_check_box_clicked();
     void on_view_ros_settings_panel_triggered();
+    void on_view_controller_panel_triggered();
     void on_view_ros_connection_status_triggered();
     void on_master_connect_button_clicked();
     void on_use_env_check_box_clicked(bool checked);
     void on_ip_button_clicked();
     void on_ros_dock_visibilityChanged(bool visible);
-    void on_tool_bar_visibilityChanged(bool visible);
+    void on_controller_dock_visibilityChanged(bool visible);
     void on_scan_button_clicked();
     void on_subscribe_button_clicked();
     void on_reset_triggered();
-
     void on_view_main_toolbar_triggered();
+    void on_set_waypoint_button_clicked();
+    void on_set_weights_button_clicked();
+    void on_set_rates_button_clicked();
 
 private:
     Ui::MainWindow *m_ui{nullptr};

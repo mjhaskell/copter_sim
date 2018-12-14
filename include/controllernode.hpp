@@ -17,6 +17,9 @@ public:
     void run();
     void startNode();
     void stopRunning();
+    void setRefCmd(const Eigen::Vector4d& ref);
+    void setWeights(const dyn::xVec& state_weights,const dyn::uVec& input_weights);
+    void setRates(double ts,double slew);
 
 signals:
     void sendInputs(const dyn::uVec* inputs);

@@ -50,6 +50,11 @@ OSGWidget::~OSGWidget()
     killTimer(m_timer_id);
 }
 
+void OSGWidget::resetManipulatorView()
+{
+    m_drone_update_callback->resetManipulator();
+}
+
 void OSGWidget::updateDroneStates(nav_msgs::Odometry* odom)
 {
     osg::Vec3d pos{odom->pose.pose.position.x,odom->pose.pose.position.y,-odom->pose.pose.position.z};

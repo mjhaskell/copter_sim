@@ -6,5 +6,6 @@
 	<file>red_x.jpg</file>
 	<file>ros.png</file>
 	<file>reset.png</file>
+	<file>controller.png</file>
     </qresource>
 </RCC>

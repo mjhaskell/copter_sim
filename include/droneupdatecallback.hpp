@@ -14,6 +14,7 @@ public:
     DroneUpdateCallback(osg::ref_ptr<osgGA::TrackballManipulator>);
     virtual void operator()(osg::Node* node, osg::NodeVisitor* nv);
     void updateStates(osg::Vec3d new_pos,osg::Quat new_att);
+    void resetManipulator();
 
 protected:
     osg::ref_ptr<osgGA::TrackballManipulator> m_manipulator{nullptr};
