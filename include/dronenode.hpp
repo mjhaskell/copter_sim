@@ -25,7 +25,7 @@ public:
     void stopRunning();
     void resetNode();
     std::string getOdometryTopics();
-    void setupRosComms(const std::string topic="/odom");
+    void setupRosComms(const std::string topic="/sim_states");
 
 signals:
     void feedbackStates(const dyn::xVec* states);
@@ -52,7 +52,9 @@ private:
     dyn::uVec m_inputs;
     dyn::xVec m_states;
     nav_msgs::Odometry m_odom;
+    nav_msgs::Odometry m_sub_odom;
     ros::Subscriber m_state_sub;
+    ros::Subscriber m_odom_sub;
     ros::Publisher m_state_pub;
     bool m_ros_is_connected;
     bool m_is_running;

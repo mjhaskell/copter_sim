@@ -65,6 +65,7 @@
      <string>File</string>
     </property>
     <addaction name="start"/>
+    <addaction name="pause"/>
     <addaction name="reset"/>
     <addaction name="separator"/>
     <addaction name="close"/>
@@ -907,12 +908,12 @@
     <string>ROS Connection Status</string>
    </property>
   </action>
-  <action name="reset">
+  <action name="pause">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Reset</string>
+    <string>Pause</string>
    </property>
   </action>
   <action name="view_main_toolbar">
@@ -929,6 +930,14 @@
    </property>
    <property name="text">
     <string>Controller Panel</string>
+   </property>
+  </action>
+  <action name="reset">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Reset</string>
    </property>
   </action>
  </widget>

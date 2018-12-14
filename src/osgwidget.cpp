@@ -36,7 +36,7 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     m_root->addChild(drone_pat);
 
     this->setFocusPolicy(Qt::StrongFocus);
-//    this->setMouseTracking(true);
+    this->setMouseTracking(true);
     this->update();
 
     double frames_per_second{30};
@@ -57,7 +57,7 @@ void OSGWidget::resetManipulatorView()
 
 void OSGWidget::updateDroneStates(nav_msgs::Odometry* odom)
 {
-    osg::Vec3d pos{odom->pose.pose.position.x,odom->pose.pose.position.y,-odom->pose.pose.position.z};
+    osg::Vec3d pos{odom->pose.pose.position.x,odom->pose.pose.position.y,odom->pose.pose.position.z};
     osg::Quat att{odom->pose.pose.orientation.x,
                  odom->pose.pose.orientation.y,
                  odom->pose.pose.orientation.z,
@@ -242,8 +242,8 @@ void OSGWidget::repaintOsgGraphicsAfterInteraction(QEvent* event)
     case QEvent::MouseButtonDblClick:
     case QEvent::MouseButtonPress:
     case QEvent::MouseButtonRelease:
-//    case QEvent::MouseMove:
-//    case QEvent::Wheel:
+    case QEvent::MouseMove:
+    case QEvent::Wheel:
         this->update();
         break;
 

@@ -6,6 +6,7 @@
 #include <QProcess>
 #include <QMessageBox>
 #include <QSettings>
+#include <chrono>
 
 MainWindow::MainWindow(int argc,char** argv,QWidget *parent) :
     QMainWindow(parent),
@@ -162,7 +163,7 @@ QAction* MainWindow::createStartAction()
 
 QAction *MainWindow::createResetAction()
 {
-    const QIcon reset_icon{QIcon{":myicons/start.png"}};
+    const QIcon reset_icon{QIcon{":myicons/reset.png"}};
     QAction *reset_action{new QAction(reset_icon, tr("Reset Simulation (Ctrl+U)"), this)};
     reset_action->setShortcut(QKeySequence{tr("Ctrl+U")});
     reset_action->setStatusTip(tr("Reset the simulation"));
@@ -183,7 +184,7 @@ void MainWindow::startOrPauseSim()
             m_main_toolbar->actions().first()->setStatusTip(tr("Pause the simulation"));
             m_ui->ros_check_box->setEnabled(false);
             m_ui->start->setEnabled(false);
-            m_ui->reset->setEnabled(true);
+            m_ui->pause->setEnabled(true);
             m_ui->topics_combo_box->setEnabled(false);
             m_ui->subscribe_button->setEnabled(false);
             m_ui->scan_button->setEnabled(false);
@@ -196,12 +197,8 @@ void MainWindow::startOrPauseSim()
         m_main_toolbar->actions().first()->setIcon(QIcon{":myicons/start.png"});
         m_main_toolbar->actions().first()->setToolTip(tr("Run Simulation (Ctrl+R)"));
         m_main_toolbar->actions().first()->setStatusTip(tr("Run Simulation"));
-        m_ui->ros_check_box->setEnabled(true);
         m_ui->start->setEnabled(true);
-        m_ui->reset->setEnabled(false);
-        m_ui->topics_combo_box->setEnabled(true);
-        m_ui->subscribe_button->setEnabled(true);
-        m_ui->scan_button->setEnabled(true);
+        m_ui->pause->setEnabled(false);
     }
 }
 
@@ -229,9 +226,15 @@ void MainWindow::pauseSimulation()
 
 void MainWindow::resetSimulation()
 {
+    m_is_running = true;
+    m_ui->ros_check_box->setEnabled(true);
+    m_ui->topics_combo_box->setEnabled(true);
+    m_ui->subscribe_button->setEnabled(true);
+    m_ui->scan_button->setEnabled(true);
+    startOrPauseSim();
     m_drone_node.stopRunning();
-    m_drone_node.resetNode();
     m_controller_node.stopRunning();
+    m_drone_node.resetNode();
     m_controller_node.resetNode();
     m_osg_widget->resetManipulatorView();
 }
@@ -432,7 +435,7 @@ void MainWindow::on_ros_dock_visibilityChanged(bool visible)
     {
         m_ui->view_ros_settings_panel->setChecked(true);
         m_ui->ros_dock->show();
-        m_main_toolbar->actions().at(1)->setChecked(true);
+        m_main_toolbar->actions().at(2)->setChecked(true);
     }
     else
     {
@@ -440,7 +443,7 @@ void MainWindow::on_ros_dock_visibilityChanged(bool visible)
             m_ui->ros_tab_widget->setEnabled(false);
         m_ui->view_ros_settings_panel->setChecked(false);
         m_ui->ros_dock->hide();
-        m_main_toolbar->actions().at(1)->setChecked(false);
+        m_main_toolbar->actions().at(2)->setChecked(false);
     }
 }
 
@@ -450,13 +453,13 @@ void MainWindow::on_controller_dock_visibilityChanged(bool visible)
     {
         m_ui->view_controller_panel->setChecked(true);
         m_ui->controller_dock->show();
-        m_main_toolbar->actions().at(2)->setChecked(true);
+        m_main_toolbar->actions().last()->setChecked(true);
     }
     else
     {
         m_ui->view_controller_panel->setChecked(false);
         m_ui->controller_dock->hide();
-        m_main_toolbar->actions().at(2)->setChecked(false);
+        m_main_toolbar->actions().last()->setChecked(false);
     }
 }
 
@@ -538,4 +541,9 @@ void MainWindow::on_set_weights_button_clicked()
 void MainWindow::on_set_rates_button_clicked()
 {
     m_controller_node.setRates(m_ui->ts_spin->value(),m_ui->slew_spin->value());
+}
+
+void MainWindow::on_pause_triggered()
+{
+    startOrPauseSim();
 }

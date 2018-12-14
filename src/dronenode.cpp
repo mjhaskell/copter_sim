@@ -132,10 +132,10 @@ void DroneNode::runRosNode()
     ros::Rate publish_rate{500};
     while (ros::ok() && ros::master::check() && m_is_running)
     {
-//        this->updateDynamics();
-//        m_state_pub.publish(m_odom);
-//        ros::spinOnce();
-//        publish_rate.sleep();
+        this->updateDynamics();
+        m_state_pub.publish(m_odom);
+        ros::spinOnce();
+        publish_rate.sleep();
     }
     if (m_is_running)
     {
@@ -171,7 +171,7 @@ void DroneNode::updateDynamics()
     m_states = m_drone.getStates();
     m_odom.pose.pose.position.x = m_states(dyn::PX);
     m_odom.pose.pose.position.y = m_states(dyn::PY);
-    m_odom.pose.pose.position.z = m_states(dyn::PZ);
+    m_odom.pose.pose.position.z = -m_states(dyn::PZ);
     quat::Quatd q{quat::Quatd::from_euler(m_states(dyn::RX),m_states(dyn::RY),m_states(dyn::RZ))};
     m_odom.pose.pose.orientation.w = q.w();
     m_odom.pose.pose.orientation.x = q.x();
@@ -181,16 +181,16 @@ void DroneNode::updateDynamics()
 
 void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr& msg)
 {
-    m_odom.pose.pose.position.x = msg->pose.pose.position.x;
-    m_odom.pose.pose.position.y = msg->pose.pose.position.y;
-    m_odom.pose.pose.position.z = msg->pose.pose.position.z;
-    m_odom.pose.pose.orientation.w = msg->pose.pose.orientation.w;
-    m_odom.pose.pose.orientation.x = msg->pose.pose.orientation.x;
-    m_odom.pose.pose.orientation.y = msg->pose.pose.orientation.y;
-    m_odom.pose.pose.orientation.z = msg->pose.pose.orientation.z;
+    m_sub_odom.pose.pose.position.x = msg->pose.pose.position.x;
+    m_sub_odom.pose.pose.position.y = msg->pose.pose.position.y;
+    m_sub_odom.pose.pose.position.z = msg->pose.pose.position.z;
+    m_sub_odom.pose.pose.orientation.w = msg->pose.pose.orientation.w;
+    m_sub_odom.pose.pose.orientation.x = msg->pose.pose.orientation.x;
+    m_sub_odom.pose.pose.orientation.y = msg->pose.pose.orientation.y;
+    m_sub_odom.pose.pose.orientation.z = msg->pose.pose.orientation.z;
 
-//    emit feedbackStates(&m_states);
-    emit statesChanged(&m_odom);
+    emit feedbackStates(&m_states);
+    emit statesChanged(&m_sub_odom);
 }
 
 void DroneNode::resetOdometry()
