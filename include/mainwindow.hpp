@@ -66,7 +66,6 @@ private slots:
     void on_set_waypoint_button_clicked();
     void on_set_weights_button_clicked();
     void on_set_rates_button_clicked();
-
     void on_pause_triggered();
 
 private:
