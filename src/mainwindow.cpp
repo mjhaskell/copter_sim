@@ -203,7 +203,7 @@ void MainWindow::startOrPauseSim()
 }
 
 bool MainWindow::startSimulation()
-{
+{   
     if (!m_drone_node.startNode())
     {
         if (m_drone_node.rosIsConnected())

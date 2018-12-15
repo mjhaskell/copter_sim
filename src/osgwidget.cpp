@@ -18,15 +18,26 @@
 #include <osgDB/ReadFile>
 #include <osgUtil/SmoothingVisitor>
 
+void OSGWidget::setupTimer()
+{
+    double frames_per_second{30};
+    double time_step{1.0/frames_per_second};
+    double timer_duration_ms{time_step * 1000};
+    m_timer_id = startTimer(timer_duration_ms);
+}
+
 OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     QOpenGLWidget{parent,flags},
     m_graphics_window{new osgViewer::GraphicsWindowEmbedded{this->x(),this->y(),this->width(),this->height()}},
     m_viewer{new osgViewer::CompositeViewer},
     m_view{new osgViewer::View},
-    m_manipulator{new osgGA::TrackballManipulator},
+    m_manipulator{new osgGA::KeySwitchMatrixManipulator},
+    m_custom_manipulator{new osgGA::TrackballManipulator},
+    m_tracker_manipulator{new osgGA::NodeTrackerManipulator},
     m_root{new osg::Group},
-    m_drone_update_callback{new DroneUpdateCallback{m_manipulator}}
+    m_drone_update_callback{new DroneUpdateCallback{m_custom_manipulator}}
 {
+    this->setupManipulators();
     this->setupCameraAndView();
     this->setupEnvironment();
 
@@ -34,15 +45,12 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
     drone_pat->addUpdateCallback(m_drone_update_callback);
     m_root->addChild(drone_pat);
+    m_tracker_manipulator->setTrackNode(drone_pat->asNode());
 
     this->setFocusPolicy(Qt::StrongFocus);
     this->setMouseTracking(true);
     this->update();
-
-    double frames_per_second{30};
-    double time_step{1.0/frames_per_second};
-    double timer_duration_ms{time_step * 1000};
-    m_timer_id = startTimer(timer_duration_ms);
+    setupTimer();
 }
 
 OSGWidget::~OSGWidget()
@@ -226,6 +234,26 @@ osgGA::EventQueue* OSGWidget::getEventQueue() const
         throw std::runtime_error("Unable to obtain valid event queue");
 }
 
+void OSGWidget::setupManipulators()
+{
+    m_custom_manipulator->setAllowThrow(false);
+    m_tracker_manipulator->setAllowThrow(false);
+
+    osgGA::NodeTrackerManipulator::TrackerMode track_mode{osgGA::NodeTrackerManipulator::NODE_CENTER};
+    m_tracker_manipulator->setTrackerMode(track_mode);
+    osgGA::NodeTrackerManipulator::RotationMode rot_mode{osgGA::NodeTrackerManipulator::TRACKBALL};
+    m_tracker_manipulator->setRotationMode(rot_mode);
+
+    osg::Vec3d eye{-5.0,0,-1.0};
+    osg::Vec3d center{0,0,0};
+    osg::Vec3d up{0,0,-1};
+    m_custom_manipulator->setHomePosition(eye,center,up);
+    m_tracker_manipulator->setHomePosition(eye,center,up);
+
+    m_manipulator->addMatrixManipulator('1',"Custom",m_custom_manipulator);
+    m_manipulator->addMatrixManipulator('2',"Tracker",m_tracker_manipulator);
+}
+
 bool OSGWidget::event(QEvent *event)
 {
     bool handled{QOpenGLWidget::event(event)};
@@ -273,13 +301,6 @@ void OSGWidget::setupCamera(osg::Camera* camera)
 
 void OSGWidget::setupView(osg::Camera* camera)
 {
-    m_manipulator->setAllowThrow(false);
-
-    osg::Vec3d camera_location{-5.0,0,-1.0};
-    osg::Vec3d camera_center_of_focus{0,0,0};
-    osg::Vec3d worlds_up_direction{0,0,-1};
-    m_manipulator->setHomePosition(camera_location,camera_center_of_focus,worlds_up_direction);
-
     m_view->setCamera(camera);
     m_view->setSceneData(m_root.get());
     m_view->addEventHandler(new osgViewer::StatsHandler);

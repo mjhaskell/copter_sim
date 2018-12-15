@@ -6,7 +6,9 @@
 #include <osg/ref_ptr>
 #include <osgViewer/GraphicsWindow>
 #include <osgViewer/CompositeViewer>
+#include <osgGA/KeySwitchMatrixManipulator>
 #include <osgGA/TrackballManipulator>
+#include <osgGA/NodeTrackerManipulator>
 #include <osgText/Text>
 #include <dronenode.hpp>
 #include "droneupdatecallback.hpp"
@@ -43,9 +45,12 @@ private:
   osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> m_graphics_window;
   osg::ref_ptr<osgViewer::CompositeViewer> m_viewer;
   osg::ref_ptr<osgViewer::View> m_view;
-  osg::ref_ptr<osgGA::TrackballManipulator> m_manipulator;
+  osg::ref_ptr<osgGA::KeySwitchMatrixManipulator> m_manipulator;
+  osg::ref_ptr<osgGA::TrackballManipulator> m_custom_manipulator;
+  osg::ref_ptr<osgGA::NodeTrackerManipulator> m_tracker_manipulator;
   osg::ref_ptr<osg::Group> m_root;
   osg::ref_ptr<DroneUpdateCallback> m_drone_update_callback;
+  void setupManipulators();
   void setupCamera(osg::Camera* camera);
   void setupView(osg::Camera* camera);
   void setupViewer();
@@ -66,6 +71,7 @@ private:
   osg::ref_ptr<osg::Node> createPinetree(double bounding_radius);
   osg::ref_ptr<osg::Node> createTree(double bounding_radius);
   int m_timer_id{0};
+  void setupTimer();
 };
 
 #endif // OSGWIDGET_HPP
