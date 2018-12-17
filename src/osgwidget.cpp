@@ -45,7 +45,7 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
     drone_pat->addUpdateCallback(m_drone_update_callback);
     m_root->addChild(drone_pat);
-    m_tracker_manipulator->setTrackNode(drone_pat->asNode());
+    m_tracker_manipulator->setTrackNode(drone_pat);
 
     this->setFocusPolicy(Qt::StrongFocus);
     this->setMouseTracking(true);
@@ -239,7 +239,7 @@ void OSGWidget::setupManipulators()
     m_custom_manipulator->setAllowThrow(false);
     m_tracker_manipulator->setAllowThrow(false);
 
-    osgGA::NodeTrackerManipulator::TrackerMode track_mode{osgGA::NodeTrackerManipulator::NODE_CENTER};
+    osgGA::NodeTrackerManipulator::TrackerMode track_mode{osgGA::NodeTrackerManipulator::NODE_CENTER_AND_AZIM};
     m_tracker_manipulator->setTrackerMode(track_mode);
     osgGA::NodeTrackerManipulator::RotationMode rot_mode{osgGA::NodeTrackerManipulator::TRACKBALL};
     m_tracker_manipulator->setRotationMode(rot_mode);
