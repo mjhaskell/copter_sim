@@ -169,14 +169,26 @@ void DroneNode::updateDynamics()
 {
     m_drone.sendMotorCmds(m_inputs);
     m_states = m_drone.getStates();
+
     m_odom.pose.pose.position.x = m_states(dyn::PX);
     m_odom.pose.pose.position.y = m_states(dyn::PY);
     m_odom.pose.pose.position.z = -m_states(dyn::PZ);
+
+    m_odom.twist.twist.linear.x = m_states(dyn::VX);
+    m_odom.twist.twist.linear.y = m_states(dyn::VY);
+    m_odom.twist.twist.linear.z = m_states(dyn::VZ);
+
     quat::Quatd q{quat::Quatd::from_euler(m_states(dyn::RX),m_states(dyn::RY),m_states(dyn::RZ))};
     m_odom.pose.pose.orientation.w = q.w();
     m_odom.pose.pose.orientation.x = q.x();
     m_odom.pose.pose.orientation.y = q.y();
     m_odom.pose.pose.orientation.z = q.z();
+
+    m_odom.twist.twist.angular.x = m_states(dyn::WX);
+    m_odom.twist.twist.angular.y = m_states(dyn::WY);
+    m_odom.twist.twist.angular.z = m_states(dyn::WZ);
+
+    m_odom.header.stamp = ros::Time::now();
 }
 
 void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr& msg)
@@ -188,6 +200,9 @@ void DroneNode::stateCallback(const nav_msgs::OdometryConstPtr& msg)
     m_sub_odom.pose.pose.orientation.x = msg->pose.pose.orientation.x;
     m_sub_odom.pose.pose.orientation.y = msg->pose.pose.orientation.y;
     m_sub_odom.pose.pose.orientation.z = msg->pose.pose.orientation.z;
+    m_sub_odom.twist.twist.linear.x = msg->twist.twist.linear.x;
+    m_sub_odom.twist.twist.linear.y = msg->twist.twist.linear.y;
+    m_sub_odom.twist.twist.linear.z = msg->twist.twist.linear.z;
 
     emit feedbackStates(&m_states);
     emit statesChanged(&m_sub_odom);
