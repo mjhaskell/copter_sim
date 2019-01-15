@@ -50,7 +50,7 @@ private:
   osg::ref_ptr<osgGA::NodeTrackerManipulator> m_tracker_manipulator;
   osg::ref_ptr<osg::Group> m_root;
   osg::ref_ptr<DroneUpdateCallback> m_drone_update_callback;
-  void setupManipulators();
+  void setupManipulators(osg::ref_ptr<osg::PositionAttitudeTransform> track_node);
   void setupCamera(osg::Camera* camera);
   void setupView(osg::Camera* camera);
   void setupViewer();

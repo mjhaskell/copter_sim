@@ -37,15 +37,17 @@ OSGWidget::OSGWidget(QWidget* parent,Qt::WindowFlags flags):
     m_root{new osg::Group},
     m_drone_update_callback{new DroneUpdateCallback{m_custom_manipulator}}
 {
-    this->setupManipulators();
     this->setupCameraAndView();
     this->setupEnvironment();
 
     double drone_radius{0.3};
-    osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{this->createDrone(drone_radius)};
-    drone_pat->addUpdateCallback(m_drone_update_callback);
+    osg::ref_ptr<osg::PositionAttitudeTransform> drone_pat{new osg::PositionAttitudeTransform};
+    drone_pat->setUpdateCallback(m_drone_update_callback);
+    osg::ref_ptr<osg::PositionAttitudeTransform> drone_node{this->createDrone(drone_radius)};
+    drone_pat->addChild(drone_node);
     m_root->addChild(drone_pat);
-    m_tracker_manipulator->setTrackNode(drone_pat);
+//    m_tracker_manipulator->setTrackNode(drone_pat);
+    this->setupManipulators(drone_node.get());
 
     this->setFocusPolicy(Qt::StrongFocus);
     this->setMouseTracking(true);
@@ -234,7 +236,7 @@ osgGA::EventQueue* OSGWidget::getEventQueue() const
         throw std::runtime_error("Unable to obtain valid event queue");
 }
 
-void OSGWidget::setupManipulators()
+void OSGWidget::setupManipulators(osg::ref_ptr<osg::PositionAttitudeTransform> track_node)
 {
     m_custom_manipulator->setAllowThrow(false);
     m_tracker_manipulator->setAllowThrow(false);
@@ -250,8 +252,11 @@ void OSGWidget::setupManipulators()
     m_custom_manipulator->setHomePosition(eye,center,up);
     m_tracker_manipulator->setHomePosition(eye,center,up);
 
+    m_tracker_manipulator->setTrackNode(track_node);
+
     m_manipulator->addMatrixManipulator('1',"Custom",m_custom_manipulator);
     m_manipulator->addMatrixManipulator('2',"Tracker",m_tracker_manipulator);
+    m_view->setCameraManipulator(m_manipulator);
 }
 
 bool OSGWidget::event(QEvent *event)
