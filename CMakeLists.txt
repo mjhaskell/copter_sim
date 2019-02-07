@@ -22,20 +22,16 @@ find_package(catkin REQUIRED COMPONENTS
     rosbag
     rosflight_msgs
     )
+find_package(Eigen3 REQUIRED)
 
 add_subdirectory(libs/dynamics)
 
-if (NOT TARGET gtest)
-    # Prevent GoogleTest from overriding our compiler/linker options
-    # when building with Visual Studio
-    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    add_subdirectory(libs/googletest)
-endif()
-
 include_directories(${OPENSCENEGRAPH_INCLUDE_DIRS}
     ${catkin_INCLUDE_DIRS}
+    ${EIGEN3_INCLUDE_DIRS}
     include
     libs/dynamics/include
+    libs/dynamics/include/geometry/include
     )
 
 set(MYSOURCE

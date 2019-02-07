@@ -1,9 +1,9 @@
 #include "dronenode.hpp"
-#include "drone.hpp"
+#include "dynamics/drone.hpp"
 #include <ros/ros.h>
 #include <string>
 #include "nav_msgs/Odometry.h"
-#include "3rd_party/quat.hpp"
+#include "geometry/quat.h"
 #include <chrono>
 
 namespace quad

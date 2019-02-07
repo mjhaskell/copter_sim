@@ -4,7 +4,7 @@
 #include <ros/ros.h>
 #include <QThread>
 #include "nav_msgs/Odometry.h"
-#include "drone.hpp"
+#include "dynamics/drone.hpp"
 
 namespace quad
 {
